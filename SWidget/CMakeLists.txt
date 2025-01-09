@@ -9,7 +9,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 
-find_package(Qt6 COMPONENTS REQUIRED Widgets)
+find_package(Qt6 COMPONENTS REQUIRED Widgets Svg)
 
 file(GLOB SWIDGET_SITEMDELEGATE_CPP "${CMAKE_CURRENT_LIST_DIR}/SItemDelegate/*.cpp")
 file(GLOB SWIDGET_CPP "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
@@ -19,4 +19,4 @@ add_library(${PROJECT_NAME} STATIC ${SWIDGET_CPP} ${SWIDGET_SITEMDELEGATE_CPP})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_CURRENT_LIST_DIR}/SItemDelegate/)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Widgets Util)
+target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Widgets Util Qt6::Svg)

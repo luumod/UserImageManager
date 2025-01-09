@@ -11,8 +11,10 @@ class SImageShowWidget : public QWidget
 	Q_OBJECT
 public:
 	SImageShowWidget(int w,int h,const QString& path, const QString& name, const QString& desc, QWidget* parent = nullptr);
+	SImageShowWidget(QWidget* parent = nullptr);
 	~SImageShowWidget();
 	void init();
+	void loadImage(const QString& path, const QString& name, const QString& desc);
 	void paintEvent(QPaintEvent* event)override;
 private:
 	RoundedImageWidget* m_wid_labImage{};

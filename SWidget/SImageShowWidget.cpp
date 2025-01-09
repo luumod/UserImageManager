@@ -16,15 +16,27 @@ SImageShowWidget::SImageShowWidget(int w, int h, const QString& path, const QStr
 	this->update();
 }
 
+SImageShowWidget::SImageShowWidget(QWidget* parent)
+{
+	//空图片
+	m_imagePath = "";
+	m_imageName = "";
+	m_imageDesc = "";
+
+	init();
+}
+
 SImageShowWidget::~SImageShowWidget()
 {
 }
 
 void SImageShowWidget::init()
 {
-	
 	//左边
-	m_wid_labImage = new RoundedImageWidget(QPixmap(m_imagePath), m_w / 3, m_h);
+	m_wid_labImage = new RoundedImageWidget(m_w / 3, m_h);
+	if (!m_imagePath.isEmpty()){
+		m_wid_labImage->setPixmap(m_imagePath);
+	}
 	m_wid_labImage->update();
 
 	//标题
@@ -42,6 +54,18 @@ void SImageShowWidget::init()
 	layout->setHorizontalSpacing(0);
 	layout->setVerticalSpacing(0);
 	layout->setContentsMargins(0, 5, 0, 5);
+}
+
+void SImageShowWidget::loadImage(const QString& path, const QString& name, const QString& desc)
+{
+	m_imagePath = path;
+	m_imageName = name;
+	m_imageDesc = desc;
+	m_wid_labImage->setPixmap(m_imagePath);
+	m_lab_imageName->setText(m_imageName);
+	m_area_textArea->setPlainText(m_imageDesc);
+
+	update();
 }
 
 void SImageShowWidget::paintEvent(QPaintEvent* event)

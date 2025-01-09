@@ -12,14 +12,8 @@ public:
 	HomePage(QWidget* parent = nullptr);
 	~HomePage();
 	void init();
-	void onSearch();
-	void parseJson(const QJsonObject& json);
-	void test_images_4();
-signals:
-	void parseFinised();
 private:
-	QStackedWidget* m_stkedWidget;
-	QList<SImageShowWidget*> m_images;
+	
 };
 
 #endif // HOMEPAGE_H

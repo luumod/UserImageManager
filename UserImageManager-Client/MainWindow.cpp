@@ -57,7 +57,7 @@ QWidget* MainWindow::initConetentArea()
 	item = new QTreeWidgetItem(m_treeNavBar, { "首页" }, 0);
 	item->setIcon(0,QIcon(":/ResourceClient/user.png"));
 
-	item = new QTreeWidgetItem(m_treeNavBar, { "个人中心" }, 1);
+	item = new QTreeWidgetItem(m_treeNavBar, { "我的仓库" }, 1);
 	item->setIcon(0,QIcon(":/ResourceClient/role.png"));
 
 	item = new QTreeWidgetItem(m_treeNavBar, { "用户管理" }, 2);

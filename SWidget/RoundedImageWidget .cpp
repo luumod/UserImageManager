@@ -10,8 +10,22 @@ RoundedImageWidget::RoundedImageWidget(const QPixmap& pixmap,int w, int h, QWidg
 {
 }
 
+RoundedImageWidget::RoundedImageWidget(int w, int h, QWidget* parent)
+    : QWidget(parent)
+    , m_w(w)
+    , m_h(h)
+{
+    m_pixmap = QPixmap(""); //空
+}
+
 RoundedImageWidget::~RoundedImageWidget()
 {	
+}
+
+void RoundedImageWidget::setPixmap(const QString& path)
+{
+    m_pixmap = QPixmap(path);
+    update();
 }
 
 void RoundedImageWidget::paintEvent(QPaintEvent* event)
@@ -21,5 +35,7 @@ void RoundedImageWidget::paintEvent(QPaintEvent* event)
     QPainterPath path;
     path.addRoundedRect(rect(), 20,20);
     painter.setClipPath(path);
-    painter.drawPixmap(rect(), m_pixmap);
+    if (!m_pixmap.isNull()) {
+        painter.drawPixmap(rect(), m_pixmap);
+    }
 }

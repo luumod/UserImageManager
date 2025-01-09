@@ -17,6 +17,12 @@ class SApp : public QApplication {
 public:
 	SApp(int& argc, char** argv);
 
+	/*
+	user/user_id
+	user/password
+	user/remember_pwd
+	user/auto_login
+	*/
 	SConfigFile* globalConfig() const;
 
 	void setUserData(const QString& key, const QVariant& data);

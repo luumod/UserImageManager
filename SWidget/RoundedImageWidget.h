@@ -8,7 +8,9 @@ class RoundedImageWidget : public QWidget
 {
 public:
     RoundedImageWidget(const QPixmap& pixmap,int w,int h, QWidget* parent = 0);
+    RoundedImageWidget(int w, int h, QWidget* parent = 0);
     ~RoundedImageWidget();
+    void setPixmap(const QString& path);
 protected:
     void paintEvent(QPaintEvent* event)override;
 private:

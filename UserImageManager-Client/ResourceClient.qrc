@@ -6,5 +6,7 @@
         <file>ResourceClient/sytle.css</file>
         <file>ResourceClient/user.png</file>
         <file>ResourceClient/default_avatar.png</file>
+        <file>ResourceClient/next.png</file>
+        <file>ResourceClient/pre.png</file>
     </qresource>
 </RCC>
