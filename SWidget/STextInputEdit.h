@@ -1,5 +1,5 @@
-#ifndef TEXT_INPUT_ITEM
-#define TEXT_INPUT_ITEM
+﻿#ifndef S_TEXT_INPUT_EDIT_H
+#define S_TEXT_INPUT_EDIT_H
 
 #include <QWidget>
 
@@ -7,7 +7,7 @@ class QLabel;
 class QLineEdit;
 class QGraphicsOpacityEffect;
 class QValidator;
-class textInputItem : public QWidget {
+class STextInputEdit : public QWidget {
     Q_OBJECT
 
 private:
@@ -35,7 +35,7 @@ private:
     void resizeEvent(QResizeEvent* event);
 
 public:
-    textInputItem(const QString& name, QWidget* parent = nullptr);
+    STextInputEdit(const QString& name, QWidget* parent = nullptr);
     QLineEdit* lineEditor();
     QString value();
 
@@ -47,4 +47,4 @@ signals:
     void textEdited(QString text);
 };
 
-#endif // !TEXT_INPUT_ITEM
+#endif // !S_TEXT_INPUT_EDIT_H

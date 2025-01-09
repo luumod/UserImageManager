@@ -2,7 +2,7 @@
 #include "SApp.h"
 #include "SHttpClient.h"
 #include "SMaskWidget.h"
-#include "textInputItem.h"
+#include "STextInputEdit.h"
 #include "textButton.h"
 #include <QBoxLayout>
 #include <QPushButton>
@@ -63,7 +63,7 @@ void UserDetailsDlg::init()
 
 	//id
 	QHBoxLayout* hlayout_1 = new QHBoxLayout;
-	m_inputItem_id = new textInputItem("用户id:");
+	m_inputItem_id = new STextInputEdit("用户id:");
 	m_inputItem_id->setValue("1173012900");
 	m_inputItem_id->setEnabled(false);
 	hlayout_1->addWidget(m_inputItem_id,2);
@@ -72,7 +72,7 @@ void UserDetailsDlg::init()
 
 	//昵称
 	QHBoxLayout* hlayout_2 = new QHBoxLayout;
-	m_inputItem_name = new textInputItem("昵  称:");
+	m_inputItem_name = new STextInputEdit("昵  称:");
 	m_inputItem_name->setValue("于良浩");
 	m_inputItem_name->setEnabled(false);
 	hlayout_2->addWidget(m_inputItem_name, 2);
@@ -81,7 +81,7 @@ void UserDetailsDlg::init()
 
 	//邮箱
 	QHBoxLayout* hlayout_3 = new QHBoxLayout;
-	m_inputItem_email = new textInputItem("邮  箱:");
+	m_inputItem_email = new STextInputEdit("邮  箱:");
 	m_inputItem_email->setValue("1173012900@qq.com");
 	m_inputItem_email->setEnabled(false);
 	hlayout_3->addWidget(m_inputItem_email, 2);
@@ -90,7 +90,7 @@ void UserDetailsDlg::init()
 
 	//电话
 	QHBoxLayout* hlayout_4 = new QHBoxLayout;
-	m_inputItem_mobile = new textInputItem("电  话:");
+	m_inputItem_mobile = new STextInputEdit("电  话:");
 	m_inputItem_mobile->setValue("13953435852");
 	m_inputItem_mobile->setEnabled(false);
 	hlayout_4->addWidget(m_inputItem_mobile, 2);

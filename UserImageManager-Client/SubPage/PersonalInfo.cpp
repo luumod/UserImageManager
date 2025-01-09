@@ -29,14 +29,18 @@ void PersonalInfo::init()
 	main_layout->addLayout(images_layout);
 
 	auto preBtn = new  QPushButton;
+	auto updateBtn = new  QPushButton;
 	auto nextBtn = new  QPushButton;
 	preBtn->setIcon(QIcon(":/ResourceClient/pre.png"));
+	updateBtn->setText("刷新");
 	nextBtn->setIcon(QIcon(":/ResourceClient/next.png"));
 	connect(preBtn, &QPushButton::clicked, this, &PersonalInfo::onChangePrePage);
 	connect(nextBtn, &QPushButton::clicked, this, &PersonalInfo::onChangeNextPage);
+	connect(updateBtn, &QPushButton::clicked, this, &PersonalInfo::onSearch);
 	QHBoxLayout* changeLayout = new QHBoxLayout;
 	changeLayout->addStretch();
 	changeLayout->addWidget(preBtn);
+	changeLayout->addWidget(updateBtn);
 	changeLayout->addWidget(nextBtn);
 	changeLayout->addStretch();
 	main_layout->addLayout(changeLayout);
@@ -80,6 +84,9 @@ void PersonalInfo::onChangeNextPage()
 
 void PersonalInfo::onSearch()
 {
+	m_firstImageIndex = 0;
+	m_lastImageIndex = 5;
+
 	QVariantMap params;
 	auto filter = sApp->globalConfig()->value("user/user_id").toString();
 	if (!filter.isEmpty()) {
@@ -107,11 +114,12 @@ void PersonalInfo::initParase(const QJsonObject& obj) //只初始化一次
 {
 	m_images.resize(6); //固定每页6张图片 3*2显示，换页则重新加载6张图片
 	for (int j = 0; j < m_images.size(); j++) {
-		m_images[j] = new SImageShowWidget; //预初始化
+		if (!m_images[j]) {
+			m_images[j] = new SImageShowWidget; //预初始化
+			images_layout->addWidget(m_images[j], j / 2, j % 2);
+		}
 	}
-	for (int i = 0; i < m_images.size(); i++) { //0-5
-		images_layout->addWidget(m_images[i], i / 2, i % 2);
-	}
+
 	images_layout->setContentsMargins(0, 0, 0, 0);
 	images_layout->setSpacing(1);
 
@@ -122,7 +130,7 @@ void PersonalInfo::initParase(const QJsonObject& obj) //只初始化一次
 void PersonalInfo::parseJson()
 {
 	for (int i = m_firstImageIndex, j = 0; i <= m_lastImageIndex; i++, j++) { //[0-5] [6-11] [...]
-		//加载每一张图片
+		//加载/重新加载每一张图片
 		m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].path
 			, m_imagesInfoMap[i].name
 			, m_imagesInfoMap[i].desc);

@@ -8,7 +8,7 @@
 class QPushButton;
 class QLabel;
 class UserEditDlg;
-class textInputItem;
+class STextInputEdit;
 class textButton;
 class UserDetailsDlg : public QWidget
 {
@@ -33,10 +33,10 @@ private:
 	textButton* m_changeAvatarBtn{};
 
 	QLabel* m_avatar_lab{};
-	textInputItem* m_inputItem_id{};
-	textInputItem* m_inputItem_name{};
-	textInputItem* m_inputItem_email{};
-	textInputItem* m_inputItem_mobile{};
+	STextInputEdit* m_inputItem_id{};
+	STextInputEdit* m_inputItem_name{};
+	STextInputEdit* m_inputItem_email{};
+	STextInputEdit* m_inputItem_mobile{};
 
 	SSwitchButton* m_isEnable_btn{};
 	void updateUi();

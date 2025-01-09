@@ -11,6 +11,7 @@ public:
     RoundedImageWidget(int w, int h, QWidget* parent = 0);
     ~RoundedImageWidget();
     void setPixmap(const QString& path);
+    bool isNull()const { return m_pixmap.isNull(); }
 protected:
     void paintEvent(QPaintEvent* event)override;
 private:

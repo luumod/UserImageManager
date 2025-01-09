@@ -1,4 +1,4 @@
-#include "textInputItem.h"
+﻿#include "STextInputEdit.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QGraphicsOpacityEffect>
@@ -7,7 +7,7 @@
 #include <QPropertyAnimation>
 #include <QValidator>
 
-textInputItem::textInputItem(const QString& name, QWidget* parent) :
+STextInputEdit::STextInputEdit(const QString& name, QWidget* parent) :
     QWidget(parent)
 {
     QFont nameFont = QFont("Corbel",12);
@@ -62,7 +62,7 @@ textInputItem::textInputItem(const QString& name, QWidget* parent) :
         });
 }
 
-void textInputItem::resizeEvent(QResizeEvent* event) {
+void STextInputEdit::resizeEvent(QResizeEvent* event) {
     itemName->move(margin, this->height() / 2 - itemName->height() / 2);
     itemName->setFixedWidth(this->width() * 0.3 - margin - spacing);
     int width = QFontMetrics(editor->font()).size(Qt::TextSingleLine, editor->text()).width() + 3;
@@ -82,7 +82,7 @@ void textInputItem::resizeEvent(QResizeEvent* event) {
     bgWidget->setFixedSize(this->size());
 }
 
-void textInputItem::enterEditEffect() {
+void STextInputEdit::enterEditEffect() {
     editor->setCursorPosition(editor->text().length());
     editor->setStyleSheet("color:#1c1c1c;background-color:#00000000;border-style:none;");
     QParallelAnimationGroup* group = new QParallelAnimationGroup(this);
@@ -106,7 +106,7 @@ void textInputItem::enterEditEffect() {
     group->start();
 }
 
-void textInputItem::leaveEditEffect() {
+void STextInputEdit::leaveEditEffect() {
     editor->setCursorPosition(0);
     editor->setStyleSheet("color:#5c5c5c;background-color:#00000000;border-style:none;");
     QParallelAnimationGroup* group = new QParallelAnimationGroup(this);
@@ -134,20 +134,20 @@ void textInputItem::leaveEditEffect() {
     group->start();
 }
 
-void textInputItem::enterEvent(QEnterEvent* event) {
+void STextInputEdit::enterEvent(QEnterEvent* event) {
     bgWidget->setStyleSheet("border-radius:5px;background-color:#0a000000");
 }
 
-void textInputItem::leaveEvent(QEvent* event) {
+void STextInputEdit::leaveEvent(QEvent* event) {
     bgWidget->setStyleSheet("border-radius:5px;background-color:#00000000");
 }
 
-void textInputItem::mousePressEvent(QMouseEvent* event) {
+void STextInputEdit::mousePressEvent(QMouseEvent* event) {
     bgWidget->setStyleSheet("border-radius:5px;background-color:#1a000000");
     mousePressed = true;
 }
 
-void textInputItem::mouseReleaseEvent(QMouseEvent* event) {
+void STextInputEdit::mouseReleaseEvent(QMouseEvent* event) {
     if (mousePressed) {
         bgWidget->setStyleSheet("border-radius:5px;background-color:#0a000000");
         if (onEditing) {
@@ -171,15 +171,15 @@ void textInputItem::mouseReleaseEvent(QMouseEvent* event) {
     }
 }
 
-QLineEdit* textInputItem::lineEditor(){ 
+QLineEdit* STextInputEdit::lineEditor(){ 
     return editor; 
 }
 
-QString textInputItem::value() {
+QString STextInputEdit::value() {
     return editor->text(); 
 }
 
-void textInputItem::setValue(const QString& text) {
+void STextInputEdit::setValue(const QString& text) {
     editor->setText(text);
     editor->setCursorPosition(0);
     curText = text;
@@ -197,10 +197,10 @@ void textInputItem::setValue(const QString& text) {
     }
 }
 
-void textInputItem::setValidator(QValidator* vali) {
+void STextInputEdit::setValidator(QValidator* vali) {
     editor->setValidator(vali); 
 }
 
-void textInputItem::setEnabled(bool enable) {
+void STextInputEdit::setEnabled(bool enable) {
     enabled = enable; 
 }
