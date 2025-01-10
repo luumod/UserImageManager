@@ -1,9 +1,10 @@
-﻿#include "UserDetailsDlg.h"
+﻿#include "PersonalDetail.h"
+#include "SSwitchButton.h"
 #include "SApp.h"
 #include "SHttpClient.h"
+#include "SMaskWidget.h"
 #include "STextInputEdit.h"
 #include "textButton.h"
-#include "SSwitchButton.h"
 #include <QBoxLayout>
 #include <QPushButton>
 #include <QLabel>
@@ -13,13 +14,16 @@
 #include <QMessageBox>
 #include <QHttpMultiPart>
 
-UserDetailsDlg::UserDetailsDlg(QWidget* parent)
+PersonalDetail::PersonalDetail(QWidget* parent)
 	:QWidget(parent)
 {
-	init();
+	init();	      //创建界面
+	updateUser(); //更新数据
+
+	connect(sApp, &SApp::update, this, &PersonalDetail::updateUser);		
 }
 
-void UserDetailsDlg::init()
+void PersonalDetail::init()
 {
 	setStyleSheet("background-color:white");
 	setAttribute(Qt::WA_StyledBackground);
@@ -28,16 +32,11 @@ void UserDetailsDlg::init()
 
 	auto mlayout = new QVBoxLayout(this);
 
-	//返回按钮
-	m_backBtn = new QPushButton("返回");
-	m_backBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed); //返回按钮固定
-
-	mlayout->addWidget(m_backBtn);
-
 	//（标题）状态
 	auto hlayout = new QHBoxLayout;
 	m_isEnable_btn = new SSwitchButton;
 	m_isEnable_btn->setFixedWidth(45);
+	m_isEnable_btn->setAlwaysState(true); //设置不可用
 	auto lab_enable = new QLabel(" 账号状态：");
 	lab_enable->setFont(nameFont);
 	hlayout->addWidget(lab_enable);
@@ -55,6 +54,9 @@ void UserDetailsDlg::init()
 	lab_avatar->setFont(nameFont);
 	hlayout_0->addWidget(lab_avatar);
 	hlayout_0->addWidget(m_avatar_lab);
+	m_changeAvatarBtn = new textButton("更换头像");
+	m_changeAvatarBtn->setFixedSize(100, 30);
+	hlayout_0->addWidget(m_changeAvatarBtn);
 	hlayout_0->addStretch(1);
 	mlayout->addLayout(hlayout_0);
 
@@ -63,7 +65,7 @@ void UserDetailsDlg::init()
 	m_inputItem_id = new STextInputEdit("用户id:");
 	m_inputItem_id->setValue("1173012900");
 	m_inputItem_id->setEnabled(false);
-	hlayout_1->addWidget(m_inputItem_id, 2);
+	hlayout_1->addWidget(m_inputItem_id,2);
 	hlayout_1->addStretch(3);
 	mlayout->addLayout(hlayout_1);
 
@@ -97,54 +99,46 @@ void UserDetailsDlg::init()
 	//最下面的空白
 	mlayout->addStretch();
 
-	connect(m_backBtn, &QPushButton::clicked, [=] {
-		close();
-
-		});
-
-	connect(m_isEnable_btn, &SSwitchButton::stateChanged, [=](bool state)
-		{
-			SHttpClient(URL("/api/user/alter?user_id=" + m_juser.value("user_id").toString())).debug(true)
-				.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-				.json({ {"isEnable",state} })
-				.fail([=](const QString& msg, int code) {
-					})
-				.success([=](const QByteArray& data)
-					{
-						QJsonParseError error;
-						auto jdom = QJsonDocument::fromJson(data, &error);
-						if (error.error != QJsonParseError::NoError) {
-#if _DEBUG
-							qWarning() << "json parse error:" << error.errorString();
-#endif
-						}
-						else
-						{
-							if (jdom["code"].toInt() < 1000)
-							{
-								m_juser.insert("isEnable", state);
-								emit userChanged(m_juser);
-							}
-						}
-					})
-				.post();
-
-		});
+	//更换头像
+	connect(m_changeAvatarBtn, &textButton::clicked, this, &PersonalDetail::onAvatarUpload);
 }
 
-void UserDetailsDlg::setUser(const QJsonObject& user)
+void PersonalDetail::onLoadPersonalInfo()
 {
-	m_oldJuser = user;
-	m_juser = user;
-	updateUi();
-	onAvatarDownload();
+	SHttpClient(URL("/api/user/")).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.param("user_id", sApp->userData("user/user_id").toString()) //query参数
+		.fail([=](const QString& msg, int code) {
+		//默认头像
+		m_avatar_lab->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
+		m_avatar_lab->setMask(QRegion(m_avatar_lab->rect(), QRegion::RegionType::Ellipse));
+			})
+		.success([=](const QByteArray& data)
+			{
+				//若成功获取头像，则直接显示图片，否则显示json的错误信息，即若返回的是json数据，则说明无头像数据
+				if (data.startsWith('{'))
+				{
+					QJsonParseError error;
+					auto jdom = QJsonDocument::fromJson(data, &error);
+
+					m_avatar_lab->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
+					m_avatar_lab->setMask(QRegion(m_avatar_lab->rect(), QRegion::RegionType::Ellipse));
+				}
+				else
+				{
+					auto img = QImage::fromData(data); //从服务器获取图片
+					m_avatar_lab->setPixmap(QPixmap::fromImage(img));
+					m_avatar_lab->setMask(QRegion(m_avatar_lab->rect(), QRegion::RegionType::Ellipse));
+				}
+			})
+		.get();
 }
 
-void UserDetailsDlg::onAvatarDownload()
+void PersonalDetail::onAvatarDownload()
 {
 	SHttpClient(URL("/api/user/avatar")).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-		.param("user_id", m_juser.value("user_id").toString()) //query参数
+		.param("user_id", sApp->userData("user/user_id").toString()) //query参数
 		.fail([=](const QString& msg, int code) {
 			//默认头像
 			m_avatar_lab->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
@@ -171,7 +165,7 @@ void UserDetailsDlg::onAvatarDownload()
 		.get();
 }
 
-void UserDetailsDlg::onAvatarUpload()
+void PersonalDetail::onAvatarUpload()
 {
 	auto path =  sApp->globalConfig()->value("other/select_avatar_path",
 		QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)).toString();
@@ -192,7 +186,7 @@ void UserDetailsDlg::onAvatarUpload()
 		return;
 	}
 
-	auto url = URL("/api/user/avatar?user_id=" + m_juser.value("user_id").toString());
+	auto url = URL("/api/user/avatar?user_id=" + sApp->userData("user/user_id").toString());
 
 	QNetworkAccessManager* mangaer = new QNetworkAccessManager(this);
 	QNetworkRequest request(url);
@@ -218,17 +212,19 @@ void UserDetailsDlg::onAvatarUpload()
 			}
 			else
 			{
+				qDebug() << QString(reply->readAll());
 				m_avatar_lab->setPixmap(QPixmap(filename));
 				m_avatar_lab->setMask(QRegion(m_avatar_lab->rect(), QRegion::RegionType::Ellipse));
 			}
 		});
 }
 
-void UserDetailsDlg::updateUi()
+void PersonalDetail::updateUser()
 {
-	m_inputItem_id->setValue(m_juser.value("user_id").toString());
-	m_inputItem_name->setValue(m_juser.value("user_name").toString());
-	m_isEnable_btn->setToggle(m_juser.value("isEnable").toBool());
-	m_inputItem_email->setValue(m_juser.value("email").toString());
-	m_inputItem_mobile->setValue(m_juser.value("mobile").toString());
+	onAvatarDownload();
+	m_inputItem_id->setValue(sApp->userData("user/user_id").toString());
+	m_inputItem_name->setValue(sApp->userData("user/user_name").toString());
+	m_inputItem_email->setValue(sApp->userData("user/email").toString());
+	m_inputItem_mobile->setValue(sApp->userData("user/mobile").toString());
+	m_isEnable_btn->setAlwaysState(sApp->userData("user/isEnable").toBool());
 }

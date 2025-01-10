@@ -1,15 +1,17 @@
 ﻿#ifndef MAINWINDOW_H_
 #define  MAINWINDOW_H_
 
-#include "UserManagerPage.h"
-#include "HomePage.h"
-#include "PersonalInfo.h"
-#include "STopBar.h"
+
 #include <QWidget>
-#include <QStackedWidget>
-#include <QTreeWidget>
 
 
+class UserManagerPage;
+class HomePage;
+class PersonalSpace;
+class STopBar;
+class PersonalDetail;
+class QTreeWidget;
+class QStackedWidget;
 class MainWindow : public QWidget
 {
 	Q_OBJECT
@@ -28,7 +30,8 @@ private:
 
 	UserManagerPage* m_userManagerPage{};
 	HomePage* m_homePage{};
-	PersonalInfo* m_personalInfoPage{};
+	PersonalSpace* m_personalInfoPage{};
+	PersonalDetail* m_personalDetailPage{};
 };
 
 #endif // !MAINWINDOW_H_

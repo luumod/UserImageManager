@@ -163,7 +163,22 @@ void Server::route_userInfo()
 			{"exp",QDateTime::currentDateTime().addDays(7).toString(Qt::DateFormat::ISODate)}
 		};
 		SJwt::SJwtObject jwtObject(SJwt::SAlgorithm::HS256, payLoad, SCRETKEY);
-		return SResult::success({ {"token",QString(jwtObject.jwt())} }); //回复用户登录时生成的token（QJsonObject形式）
+
+
+		QJsonObject jLoginUser;
+		jLoginUser.insert("user_id", query.value("user_id").toString());
+		jLoginUser.insert("user_name", query.value("user_name").toString());
+		jLoginUser.insert("password", query.value("password").toString());
+		jLoginUser.insert("gender", query.value("gender").toInt());
+		jLoginUser.insert("mobile", query.value("mobile").toString());
+		jLoginUser.insert("email", query.value("email").toString());
+		jLoginUser.insert("avatar_path", query.value("avatar_path").toString());
+		jLoginUser.insert("isEnable", true);
+		jLoginUser.insert("isDeleted", false);
+		jLoginUser.insert("token", QString(jwtObject.jwt()));
+
+		//{ {"token",QString(jwtObject.jwt())} }
+		return SResult::success(jLoginUser); //回复用户登录时生成的token（QJsonObject形式）
 		});
 
 	//用户注册

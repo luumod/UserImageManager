@@ -34,21 +34,22 @@ void SSwitchButton::paintEvent(QPaintEvent *event)
     QColor background;
     QColor thumbColor;
     qreal dOpacity;
-    if (isEnabled()) { // 可用状态
+    //if (isEnabled()) { // 可用状态
         if (m_bState) { // 打开状态
             background = m_checkedColor;
             thumbColor = m_checkedColor;
             dOpacity = 0.600;
-        } else { //关闭状态
+        }
+        else { //关闭状态
             background = m_background;
             thumbColor = m_thumbColor;
             dOpacity = 0.800;
         }
-    } else {  // 不可用状态
-        background = m_background;
-        dOpacity = 0.260;
-        thumbColor = m_disabledColor;
-    }
+    //} else {  // 不可用状态
+    //    background = m_background;
+    //    dOpacity = 0.260;
+    //    thumbColor = m_disabledColor;
+    //}
     // 绘制大椭圆
     painter.setBrush(background);
     painter.setOpacity(dOpacity);
@@ -127,6 +128,13 @@ void SSwitchButton::onTimeout()
 bool SSwitchButton::isToggled() const
 {
     return m_bState;
+}
+
+void SSwitchButton::setAlwaysState(bool state)
+{
+    setEnabled(false);
+    m_bState = state;
+    m_timer.start(10);
 }
 
 // 设置开关状态

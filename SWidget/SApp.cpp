@@ -1,6 +1,8 @@
 ﻿#include "SApp.h"
 #include <QFile>
 #include <QDir>
+#include <QDebug>
+#include <QJsonObject>
 
 SApp::SApp(int& argc, char** argv)
 	: QApplication(argc, argv)
@@ -18,10 +20,6 @@ SConfigFile* SApp::globalConfig() const
 
 void SApp::setUserData(const QString& key, const QVariant& data)
 {
-	auto it = m_userData.find(key);
-	if (it != m_userData.end()) {
-		qWarning() << "User data already exists:" << key;
-	}
 	m_userData.insert(key, data);
 }
 
@@ -33,6 +31,25 @@ QVariant SApp::userData(const QString& key) const
 		return QVariant();
 	}
 	return m_userData.value(key);
+}
+
+void SApp::debugUserData()
+{
+	for (const auto& key : m_userData.keys()) {
+		qDebug() << "User data:" << key << m_userData.value(key);
+	}
+}
+
+void SApp::updateUserData(const QJsonObject& juser)
+{
+	if (juser.value("user_id").toString() == sApp->userData("user/user_id").toString()) {
+		//sApp->setUserData("user/avatar_path", QDir::currentPath() + "/" + juser.value("avatar_path").toString());
+		sApp->setUserData("user/user_name", juser.value("user_name").toString());
+		sApp->setUserData("user/email", juser.value("email").toString());
+		sApp->setUserData("user/mobile", juser.value("mobile").toString());
+		sApp->setUserData("user/isEnable", juser.value("isEnable").toBool());
+		emit update();
+	}
 }
 
 void SApp::initGlobalConfig()

@@ -1,8 +1,14 @@
 ﻿#include "MainWindow.h"
+#include "UserManagerPage.h"
+#include "HomePage.h"
+#include "PersonalSpace.h"
+#include "STopBar.h"
 #include "SMaskWidget.h"
+#include "PersonalDetail.h"
 #include <QBoxLayout>
 #include <QFile>
-#include <QVBoxLayout>
+#include <QStackedWidget>
+#include <QTreeWidget>
 
 MainWindow::MainWindow(QWidget* parent)
 	:QWidget(parent)
@@ -36,13 +42,15 @@ QWidget* MainWindow::initConetentArea()
 {
 	m_treeNavBar = new QTreeWidget;
 	m_stkWidget = new QStackedWidget;
+
 	m_homePage = new HomePage;
-	m_personalInfoPage = new PersonalInfo;
+	m_personalInfoPage = new PersonalSpace;
 	m_userManagerPage = new UserManagerPage;
+	m_personalDetailPage = new PersonalDetail;
 	m_stkWidget->addWidget(m_homePage); //首页
-	m_stkWidget->addWidget(m_personalInfoPage); //个人中心
+	m_stkWidget->addWidget(m_personalInfoPage); //个人仓库
 	m_stkWidget->addWidget(m_userManagerPage); //用户管理
-	//m_stkWidget->addWidget(); //社区
+	m_stkWidget->addWidget(m_personalDetailPage); //个人中心
 	m_stkWidget->setContentsMargins(0, 0, 0, 0);
 
 	m_treeNavBar->setMaximumWidth(this->width() / 5);
@@ -63,12 +71,11 @@ QWidget* MainWindow::initConetentArea()
 	item = new QTreeWidgetItem(m_treeNavBar, { "用户管理" }, 2);
 	item->setIcon(0,QIcon(":/ResourceClient/privilege.png"));
 
-	item = new QTreeWidgetItem(m_treeNavBar, { "社区" }, 3);
+	item = new QTreeWidgetItem(m_treeNavBar, { "个人中心" }, 3);
 	item->setIcon(0,QIcon(":/ResourceClient/user.png"));
 
 	//选择某一个项目，切换页面
 	connect(m_treeNavBar, &QTreeWidget::itemClicked, [=](QTreeWidgetItem* item, int column){
-			qDebug() << item->type() << column;
 			m_stkWidget->setCurrentIndex(item->type());
 		});
 

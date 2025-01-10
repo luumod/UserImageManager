@@ -277,12 +277,23 @@ void LoginRegister::onLogin() {
 				else {
 					if (jdom["code"].toInt() < 1000) { //jdom.object().value("code").tointeger()
 						auto token = jdom["data"]["token"].toString();
-						sApp->setUserData("token", token); //保存token
+						sApp->setUserData("user/token", token); 
+						sApp->setUserData("user/user_id",jdom["data"]["user_id"].toString());
+						sApp->setUserData("user/user_name", jdom["data"]["user_name"].toString());
+						sApp->setUserData("user/gender", jdom["data"]["gender"].toInt());
+						sApp->setUserData("user/password", jdom["data"]["password"].toString());
+						sApp->setUserData("user/mobile", jdom["data"]["mobile"].toString());
+						sApp->setUserData("user/email", jdom["data"]["email"].toString());
+						sApp->setUserData("user/avatar_path", QDir::currentPath() + "/" + jdom["data"]["avatar_path"].toString());
+						sApp->setUserData("user/isEnable", jdom["data"]["isEnable"].toBool());
+						sApp->setUserData("user/isDeleted", jdom["data"]["isDeleted"].toBool());
 
+						sApp->debugUserData();
+						
 						//登陆成功后，保存信息
 						auto config = sApp->globalConfig();
-						config->setValue("user/user_id", acc);
-						config->setValue("user/password", pwd);
+						config->setValue("user/user_id",jdom["data"]["user_id"].toString());
+						config->setValue("user/password", jdom["data"]["password"].toString());
 						config->setValue("user/remember_pwd", isRememPwd);
 						config->setValue("user/auto_login", m_autoLogin->isChecked());
 

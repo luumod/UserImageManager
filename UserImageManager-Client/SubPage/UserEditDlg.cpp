@@ -1,7 +1,6 @@
 ﻿#include "UserEditDlg.h"
 #include "SHttpClient.h"
 #include "SApp.h"
-
 #include <QBoxLayout>
 #include <QPushButton>
 #include <QLabel>
@@ -48,53 +47,50 @@ void UserEditDlg::init()
 
 	mlayout->addLayout(flayout);
 
-	{
-		auto okBtn = new QPushButton("确定");
-		auto cancelBtn = new QPushButton("取消");
+	auto okBtn = new QPushButton("确定");
+	auto cancelBtn = new QPushButton("取消");
 
-		auto bhlayout = new QHBoxLayout;
-		bhlayout->addStretch();
-		bhlayout->addWidget(okBtn);
-		bhlayout->addWidget(cancelBtn);
+	auto bhlayout = new QHBoxLayout;
+	bhlayout->addStretch();
+	bhlayout->addWidget(okBtn);
+	bhlayout->addWidget(cancelBtn);
 
-		mlayout->addStretch(0);
-		mlayout->addLayout(bhlayout);
+	mlayout->addStretch(0);
+	mlayout->addLayout(bhlayout);
 
-		connect(okBtn, &QPushButton::clicked, [=]()
-			{
-				m_juser.insert("user_id", m_user_id_edit->text());
-				m_juser.insert("user_name",m_username_edit->text());
-				m_juser.insert("mobile",m_mobile_edit->text());
-				m_juser.insert("email",m_email_edit->text());
+	connect(okBtn, &QPushButton::clicked, [=]()
+		{
+			m_juser.insert("user_id", m_user_id_edit->text());
+			m_juser.insert("user_name",m_username_edit->text());
+			m_juser.insert("mobile",m_mobile_edit->text());
+			m_juser.insert("email",m_email_edit->text());
 
-				SHttpClient(URL("/api/user/alter?user_id=" + m_juser.value("user_id").toString())).debug(true)
-					.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-					.json(m_juser)
-					.success([=](const QByteArray& data)
-						{
-							QJsonParseError error;
-							auto jdom = QJsonDocument::fromJson(data, &error);
-							if (error.error != QJsonParseError::NoError) {
-								qWarning() << "json parse error:" << error.errorString();
-								return;
-							}
-							if (jdom["code"].toInt() < 1000) {
-								emit userChanged(m_juser);
-								this->close();
-							}
-							else {
-								qWarning() << "alter user failed:" << jdom["message"].toString();
-							}
-						})
-					.post();
+			SHttpClient(URL("/api/user/alter?user_id=" + m_juser.value("user_id").toString())).debug(true)
+				.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+				.json(m_juser)
+				.success([=](const QByteArray& data)
+					{
+						QJsonParseError error;
+						auto jdom = QJsonDocument::fromJson(data, &error);
+						if (error.error != QJsonParseError::NoError) {
+							qWarning() << "json parse error:" << error.errorString();
+							return;
+						}
+						if (jdom["code"].toInt() < 1000) {
+							emit userChanged(m_juser);
+							this->close();
+						}
+						else {
+							qWarning() << "alter user failed:" << jdom["message"].toString();
+						}
+					})
+				.post();
 
-			});
-		connect(cancelBtn, &QPushButton::clicked, [=]()
-			{
-				this->close();
-			});
-	}
-
+		});
+	connect(cancelBtn, &QPushButton::clicked, [=]()
+		{
+			this->close();
+		});
 }
 
 void UserEditDlg::setUser(const QJsonObject& user)

@@ -12,6 +12,8 @@ public:
    // 返回开关状态 - 打开：true 关闭：false
     bool isToggled() const;
 
+    void setAlwaysState(bool state);
+
     // 设置开关状态
     void setToggle(bool checked);
 
@@ -46,6 +48,7 @@ private slots:
     void onTimeout();
 private:
 	bool m_bState{};
+    bool m_bDisEnableState{};
 	QColor m_background;     // 背景颜色
     QColor m_checkedColor;   // 选中颜色
     QColor m_disabledColor;  // 不可用颜色

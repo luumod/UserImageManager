@@ -1,5 +1,5 @@
-﻿#ifndef PERSONALINFO_H
-#define PERSONALINFO_
+﻿#ifndef PERSONALSPACE_H
+#define PERSONALSPACE_H
 #include <QWidget>
 #include <QStandardItemModel>
 
@@ -7,12 +7,12 @@ class QStackedWidget;
 class SImageShowWidget;
 class QGridLayout;
 class QVBoxLayout;
-class PersonalInfo : public QWidget
+class PersonalSpace : public QWidget
 {
 	Q_OBJECT
 public:
-	PersonalInfo(QWidget* parent = nullptr);
-	~PersonalInfo();
+	PersonalSpace(QWidget* parent = nullptr);
+	~PersonalSpace();
 	void init();
 	void onSearch();
 	void loadImage(const QJsonArray& imagesArray);
@@ -49,4 +49,4 @@ private:
 
 };
 
-#endif // PERSONALINFO_H
+#endif // PERSONALSPACE_H

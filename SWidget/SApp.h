@@ -14,6 +14,7 @@
 全局应用类，用于管理全局配置、用户数据等
 */
 class SApp : public QApplication {
+	Q_OBJECT
 public:
 	SApp(int& argc, char** argv);
 
@@ -27,6 +28,11 @@ public:
 
 	void setUserData(const QString& key, const QVariant& data);
 	QVariant userData(const QString& key) const;
+
+	void debugUserData();
+	void updateUserData(const QJsonObject& juser);
+signals:
+	void update();
 private:
 	SConfigFile* m_globalConfig = nullptr;
 

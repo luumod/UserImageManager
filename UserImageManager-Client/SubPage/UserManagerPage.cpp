@@ -340,11 +340,10 @@ void UserManagerPage::showUserDetails(const QModelIndex& index)
 	if (!m_detailsDlg) {
 		m_detailsDlg = new UserDetailsDlg(this);
 		connect(m_detailsDlg, &UserDetailsDlg::userChanged,this, [=](const QJsonObject& juser) {
-			m_model->item(m_currentIndex.row(), column("user_id"))->setText(juser.value("user_id").toString());
-			m_model->item(m_currentIndex.row(), column("user_name"))->setText(juser.value("user_name").toString());
-			m_model->item(m_currentIndex.row(), column("email"))->setText(juser.value("email").toString());
-			m_model->item(m_currentIndex.row(), column("mobile"))->setText(juser.value("mobile").toString());
+			//只能禁用用户
 			m_model->item(m_currentIndex.row(), column("isEnable"))->setData(juser.value("isEnable").toBool(), Qt::UserRole);
+
+			sApp->updateUserData(juser);
 			});
 	}
 
@@ -368,11 +367,12 @@ void UserManagerPage::showUserEditDlg(const QModelIndex& index)
 	{
 		m_userEditDlg = new UserEditDlg(this);
 		connect(m_userEditDlg, &UserEditDlg::userChanged,this, [=](const QJsonObject& juser){
+			//更新视图
 			m_model->item(m_currentIndex.row(), column("user_name"))->setText(juser.value("user_name").toString());
 			m_model->item(m_currentIndex.row(), column("email"))->setText(juser.value("email").toString());
 			m_model->item(m_currentIndex.row(), column("mobile"))->setText(juser.value("mobile").toString());
-			//m_model->item(index.row(), column("isEnable"))->setData(juser.value("isEnable").toBool(), Qt::UserRole);
-			qInfo() << "修改详细信息成功";
+
+			sApp->updateUserData(juser);
 			});
 	}
 

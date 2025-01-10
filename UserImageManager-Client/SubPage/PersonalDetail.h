@@ -1,5 +1,5 @@
-﻿#ifndef USERDETAILSDLG_H_
-#define  USERDETAILSDLG_H_
+﻿#ifndef PERSONALDETAIL_H_
+#define  PERSONALDETAIL_H_
 
 #include <QWidget>
 #include <QJsonObject>
@@ -10,24 +10,21 @@ class UserEditDlg;
 class STextInputEdit;
 class textButton;
 class SSwitchButton;
-class UserDetailsDlg : public QWidget
+class PersonalDetail: public QWidget
 {
 	Q_OBJECT
 public:
-	UserDetailsDlg(QWidget* parent = nullptr);
+	PersonalDetail(QWidget* parent = nullptr);
 	void init();
 
 	void setUser(const QJsonObject& user);
-signals:
-	void userChanged(const QJsonObject& user);
 protected: 
+	void onLoadPersonalInfo();
 	void onAvatarDownload();
 	void onAvatarUpload();
 private:
-	QJsonObject m_juser;	//保存所有经过修改只收的用户数据(变化的)
-	QJsonObject m_oldJuser;	//保存设置进来的原始的用户数据(不变的)
-	
-	QPushButton* m_backBtn{};
+
+	textButton* m_changeAvatarBtn{};
 
 	QLabel* m_avatar_lab{};
 	STextInputEdit* m_inputItem_id{};
@@ -36,7 +33,7 @@ private:
 	STextInputEdit* m_inputItem_mobile{};
 
 	SSwitchButton* m_isEnable_btn{};
-	void updateUi();
+	void updateUser();
 };
 
-#endif //! USERDETAILSDLG_H_
+#endif //! PERSONALDETAIL_H_
