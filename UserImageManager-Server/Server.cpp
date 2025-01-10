@@ -209,7 +209,7 @@ void Server::route_userInfo()
 		return SResult::success();
 		});
 
-	//用户查询
+	//用户查询(模糊查找)
 	m_server.route("/api/user/list", [](const QHttpServerRequest& request) {
 		//校验参数
 		std::optional<QByteArray> token = CheckToken(request);
@@ -275,6 +275,54 @@ void Server::route_userInfo()
 			jobj.insert("page_size", pageSize);
 			jobj.insert("last_page", last_page);
 			jobj.insert("total_records", total_records);
+		}
+		return SResult::success(jobj);
+		});
+
+	//用户查询(精确查询)
+	m_server.route("/api/user/queryUser", [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		auto user_id = uquery.queryItemValue("user_id");
+		auto isEnable = uquery.queryItemValue("isEnable");
+		QString filter = "WHERE isDeleted=false ";
+		//通过user_id的查询
+		if (!user_id.isEmpty()) {
+			filter += QString(" and user_id='%1' ").arg(user_id);
+		}
+		if (!isEnable.isEmpty()) {
+			filter += QString(" and isEnable=%1 ").arg((isEnable == "true" ? 1 : 0));
+		}
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		//查询总记录条数
+		query.exec(QString("SELECT * FROM user_info %1 ").arg(filter));
+		CheckSqlQuery(query);
+#if _DEBUG
+		qDebug() << "精确查找:" << user_id;
+		qDebug() << query.lastQuery();
+#endif
+		/*query.next();
+		auto id = query.record().value("id").toInt();
+		auto user_id = query.record().value("user_id").toInt();;
+		auto user_name = query.record().value("user_name").toString();
+		auto gender = query.record().value("gender").toInt();
+		auto mobile = query.record().value("mobile").toString();
+		auto email = query.record().value("email").toString();*/
+
+		QJsonObject jobj;
+		if (query.size() > 0) {
+			QJsonArray array;
+			//将查询结果转换为json数组
+			while (query.next()) {
+				array.append(recordToJson(query.record()));
+			}
+			jobj.insert("list", array);
 		}
 		return SResult::success(jobj);
 		});
@@ -726,7 +774,7 @@ void Server::route_userImage()
 			return;	
 		}
 		auto ower_user_id = query.value("id").toInt(); //获取用户id
-		query.prepare(QString("SELECT image_path,image_name,image_size,image_type,upload_time,description FROM user_image WHERE ower_user_id=%1")
+		query.prepare(QString("SELECT image_id,image_path,ower_user_id,image_name,image_size,image_type,upload_time,description FROM user_image WHERE ower_user_id=%1")
 			.arg(ower_user_id));
 #if _DEBUG	
 		qDebug() << "用户图片获取";
@@ -740,6 +788,8 @@ void Server::route_userImage()
 		QJsonArray jarray;
 		while (query.next()) {
 			QJsonObject jobj;
+			jobj.insert("image_id", query.value("image_id").toInt());
+			jobj.insert("ower_user_id", query.value("ower_user_id").toInt());
 			jobj.insert("image_path", query.value("image_path").toString());
 			jobj.insert("image_name", query.value("image_name").toString());
 			jobj.insert("image_size", query.value("image_size").toInt());

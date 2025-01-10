@@ -3,27 +3,22 @@
 #include <QGridLayout>
 #include <QPainter>
 
-SImageShowWidget::SImageShowWidget(int w, int h, const QString& path, const QString& name, const QString& desc, QWidget* parent)
+SImageShowWidget::SImageShowWidget(int id,const QString& path, const QString& name, const QString& desc, QWidget* parent)
 	: QWidget(parent)
-	, m_w(w)
-	, m_h(h)
+	, m_id(id)
 	, m_imagePath(path)
 	, m_imageName(name)
 	, m_imageDesc(desc)
 {
+	setMouseTracking(true);
 	this->setObjectName("SImageShowWidget");
 	init(); 
 	this->update();
+
 }
 
-SImageShowWidget::SImageShowWidget(QWidget* parent)
-{
-	//空图片
-	m_imagePath = "";
-	m_imageName = "";
-	m_imageDesc = "";
-
-	init();
+SImageShowWidget::SImageShowWidget(int id,QWidget* parent)
+	:SImageShowWidget(id, "", "", "", parent) {
 }
 
 SImageShowWidget::~SImageShowWidget()
@@ -33,7 +28,7 @@ SImageShowWidget::~SImageShowWidget()
 void SImageShowWidget::init()
 {
 	//左边
-	m_wid_labImage = new RoundedImageWidget(m_w / 3, m_h);
+	m_wid_labImage = new RoundedImageWidget(m_id);
 	if (!m_imagePath.isEmpty()){
 		m_wid_labImage->setPixmap(m_imagePath);
 	}

@@ -1,7 +1,10 @@
 ﻿#include "PersonalSpace.h"
+#include "PersonalSpace.h"
 #include "SHttpClient.h"
 #include "SApp.h"
+#include "RoundedImageWidget.h"
 #include "SImageShowWidget.h"
+#include "SImageDetail.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QStackedWidget>
@@ -12,6 +15,7 @@ PersonalSpace::PersonalSpace(QWidget* parent)
 	: QWidget(parent)
 	, m_model(new QStandardItemModel(this))
 {
+	setMouseTracking(true);
 	init();
 }
 
@@ -44,20 +48,13 @@ void PersonalSpace::init()
 	onSearch(); 
 }
 
-void PersonalSpace::loadImage(const QJsonArray& imagesArray)
+void PersonalSpace::resizeEvent(QResizeEvent* e)
 {
-	//首先保存全部图片信息
-	for (int i = 0; i < imagesArray.size(); i++) {
-		auto image = imagesArray[i].toObject();
-		m_imagesInfoMap.insert(i,
-			{ image["image_id"].toVariant().toInt(),
-			image["ower_user_id"].toVariant().toInt(),
-			image["image_path"].toVariant().toString(),
-			image["image_name"].toVariant().toString(),
-			image["description"].toVariant().toString() });
-		//qDebug()<<i<<": "<<m_imagesInfoMap[i].path<<","<< m_imagesInfoMap[i].name<<","<<m_imagesInfoMap[i].desc;
+	if (m_imageDetailDlg) {
+		m_imageDetailDlg->resize(this->size());
 	}
 }
+
 void PersonalSpace::onChangePrePage()
 {
 	if (m_firstImageIndex - 6 < 0) {
@@ -65,6 +62,7 @@ void PersonalSpace::onChangePrePage()
 	}
 	m_firstImageIndex -= 6;
 	m_lastImageIndex -= 6;
+	m_currentPage--;//  3 2 1 0
 	parseJson();
 }
 
@@ -75,13 +73,32 @@ void PersonalSpace::onChangeNextPage()
 	}
 	m_firstImageIndex += 6;
 	m_lastImageIndex += 6;
+	m_currentPage++; // 0 1 2 3
 	parseJson();
 }
+
+void PersonalSpace::onClickedOneImage(int id) {
+	if (!m_imageDetailDlg) {
+		m_imageDetailDlg = new SImageDetailDlg(
+			 this); //图片id
+	}
+	auto image_real_index = m_currentPage * m_images.size() + id;;
+	m_imageDetailDlg->setData(ImageInfo(
+		m_imagesInfoMap[image_real_index].image_id,
+		m_imagesInfoMap[image_real_index].image_ower_id,
+		m_imagesInfoMap[image_real_index].image_path,
+		m_imagesInfoMap[image_real_index].image_name,
+		m_imagesInfoMap[image_real_index].image_desc)),
+	m_imageDetailDlg->resize(this->size());
+	m_imageDetailDlg->show();
+}
+
+
 
 void PersonalSpace::onSearch()
 {
 	QVariantMap params;
-	auto filter = sApp->globalConfig()->value("user/user_id").toString();
+	auto filter = sApp->userData("user/user_id").toString();
 	if (!filter.isEmpty()) {
 		params.insert("user_id", filter);
 	}
@@ -107,7 +124,8 @@ void PersonalSpace::initParase(const QJsonObject& obj) //只初始化一次
 {
 	m_images.resize(6); //固定每页6张图片 3*2显示，换页则重新加载6张图片
 	for (int j = 0; j < m_images.size(); j++) {
-		m_images[j] = new SImageShowWidget; //预初始化
+		m_images[j] = new SImageShowWidget(j); //预初始化 ,传入id，用于记录图片所处的位置
+		connect(m_images[j]->m_wid_labImage, &RoundedImageWidget::clickedImage, this, &PersonalSpace::onClickedOneImage);
 	}
 	for (int i = 0; i < m_images.size(); i++) { //0-5
 		images_layout->addWidget(m_images[i], i / 2, i % 2);
@@ -119,13 +137,27 @@ void PersonalSpace::initParase(const QJsonObject& obj) //只初始化一次
 	loadImage(jArray);
 }
 
+void PersonalSpace::loadImage(const QJsonArray& imagesArray)
+{
+	//首先保存全部图片信息
+	for (int i = 0; i < imagesArray.size(); i++) {
+		auto image = imagesArray[i].toObject();
+		m_imagesInfoMap.insert(i,
+			{ image["image_id"].toVariant().toInt(),
+			image["ower_user_id"].toVariant().toInt(),
+			image["image_path"].toVariant().toString(),
+			image["image_name"].toVariant().toString(),
+			image["description"].toVariant().toString() });
+	}
+}
+
 void PersonalSpace::parseJson()
 {
 	for (int i = m_firstImageIndex, j = 0; i <= m_lastImageIndex; i++, j++) { //[0-5] [6-11] [...]
 		//加载每一张图片
-		m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].path
-			, m_imagesInfoMap[i].name
-			, m_imagesInfoMap[i].desc);
+		m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].image_path
+			, m_imagesInfoMap[i].image_name
+			, m_imagesInfoMap[i].image_desc);
 	} //(F:/code/UserImageManager/bin)  /  (../images/upload/1/1173012900_20250109145406_test1.jpg)
 }
 

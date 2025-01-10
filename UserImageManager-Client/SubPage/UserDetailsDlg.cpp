@@ -97,10 +97,7 @@ void UserDetailsDlg::init()
 	//最下面的空白
 	mlayout->addStretch();
 
-	connect(m_backBtn, &QPushButton::clicked, [=] {
-		close();
-
-		});
+	connect(m_backBtn, &QPushButton::clicked, this, &UserDetailsDlg::close);
 
 	connect(m_isEnable_btn, &SSwitchButton::stateChanged, [=](bool state)
 		{
@@ -134,7 +131,6 @@ void UserDetailsDlg::init()
 
 void UserDetailsDlg::setUser(const QJsonObject& user)
 {
-	m_oldJuser = user;
 	m_juser = user;
 	updateUi();
 	onAvatarDownload();

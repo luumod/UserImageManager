@@ -24,8 +24,7 @@ protected:
 	void onAvatarDownload();
 	void onAvatarUpload();
 private:
-	QJsonObject m_juser;	//保存所有经过修改只收的用户数据(变化的)
-	QJsonObject m_oldJuser;	//保存设置进来的原始的用户数据(不变的)
+	QJsonObject m_juser;
 	
 	QPushButton* m_backBtn{};
 

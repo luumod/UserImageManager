@@ -66,7 +66,7 @@ void HomePage::init()
 
 	QHBoxLayout* middleLayout = new QHBoxLayout;
 	auto uploadBtn = new SBigIconButton(":/ResourceClient/create.png", "上传图片", 10);
-	m_previewImage = new RoundedImageWidget(10,10);
+	m_previewImage = new RoundedImageWidget;
 	uploadBtn->setFixedSize(300,300);
 	m_previewImage->setFixedSize(300,300);
 	m_previewImage->setStyleSheet("border: 1px solid #ccc;");

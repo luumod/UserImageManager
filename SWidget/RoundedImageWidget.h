@@ -1,24 +1,33 @@
 ﻿#ifndef ROUNDEDIMAGEWIDGET_H
 #define ROUNDEDIMAGEWIDGET_H
 
+#include <QObject>
 #include <QWidget>
 #include <QPixmap>
 
 class RoundedImageWidget : public QWidget
 {
-public:
-    RoundedImageWidget(const QPixmap& pixmap,int w,int h, QWidget* parent = 0);
-    RoundedImageWidget(int w, int h, QWidget* parent = 0);
-    ~RoundedImageWidget();
-    void setPixmap(const QString& path);
-    bool isNull()const { return m_pixmap.isNull(); }
-protected:
-    void paintEvent(QPaintEvent* event)override;
-private:
-    QPixmap m_pixmap;
+	Q_OBJECT
 
-    int m_w;
-    int m_h;
+public:
+	RoundedImageWidget(int id, const QPixmap& pixmap, QWidget* parent = nullptr);
+	RoundedImageWidget(int id, QWidget* parent = nullptr);
+	RoundedImageWidget(QWidget* parent = nullptr);
+	~RoundedImageWidget();
+	void setPixmap(const QString& path);
+	bool isNull()const;
+signals:
+	void clickedImage(int id);
+protected:
+	void mouseMoveEvent(QMouseEvent* event)override;
+	void mousePressEvent(QMouseEvent* event)override;
+	void paintEvent(QPaintEvent* event)override;
+
+
+private:
+	QPixmap m_pixmap;
+
+	int m_id{};
 };
 
 #endif // ROUNDEDIMAGEWIDGET_H

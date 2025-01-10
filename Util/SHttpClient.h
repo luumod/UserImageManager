@@ -5,12 +5,10 @@
 #include <QMap>
 #include <QVariant>
 #include <QStringList>
-
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QNetworkAccessManager>
 #include <QTcpSocket>
-
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QJsonObject>
