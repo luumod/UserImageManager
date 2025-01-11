@@ -1,5 +1,5 @@
 ﻿#include "UserManagerPage.h"
-#include "ui_UserManagerPage.h"
+#include "UserManagerPage.h"
 #include "SHttpClient.h"
 #include "SApp.h"
 #include "SHeaderView.h"
@@ -15,16 +15,18 @@
 #include "SMaskWidget.h"
 #include <QPushButton>
 #include <set>
+#include <QLineEdit>
+#include <QTableView>
+#include <QFormLayout>
+#include <QComboBox>
 
 UserManagerPage::UserManagerPage(QWidget* parent)
 	:QWidget(parent)
-	,ui(new Ui::User_ManagerPage)
 	,m_model(new QStandardItemModel(this))
 {
-	ui->setupUi(this);
 	init();
 
-	/*auto hlayout = dynamic_cast<QHBoxLayout*>(ui->batchEnableBtn->parentWidget()->layout());
+	/*auto hlayout = dynamic_cast<QHBoxLayout*>(m_batchEnableBtn->parentWidget()->layout());
 	if (hlayout) {
 		hlayout->insertWidget(hlayout->count() - 1, new SSwitchButton);
 	}*/
@@ -32,30 +34,106 @@ UserManagerPage::UserManagerPage(QWidget* parent)
 
 UserManagerPage::~UserManagerPage()
 {
-	delete ui;
 }
 
 void UserManagerPage::init()
 {
+	SFieldTranslate::instance()->addTrans("user/", "");
+	SFieldTranslate::instance()->addTrans("user/id", "索引");
 	SFieldTranslate::instance()->addTrans("user/user_id", "用户ID");
 	SFieldTranslate::instance()->addTrans("user/user_name", "用户名");
 	SFieldTranslate::instance()->addTrans("user/gender", "性别");
 	SFieldTranslate::instance()->addTrans("user/email", "邮箱");
 	SFieldTranslate::instance()->addTrans("user/mobile", "电话");
 	SFieldTranslate::instance()->addTrans("user/isEnable", "账号状态");
+	SFieldTranslate::instance()->addTrans("user/operation", "操作");
+
+	//----------顶部查询------------
+	QFormLayout* idLayout = new QFormLayout;
+	m_searchEdit_userid = new QLineEdit;
+	m_searchEdit_userid->setPlaceholderText("请输入用户账号（选填）");
+	idLayout->addRow(new QLabel("id："), m_searchEdit_userid);
+
+	QFormLayout* nameLayout = new QFormLayout;
+	m_searchEdit_username = new QLineEdit;
+	m_searchEdit_username->setPlaceholderText("请输入用户名（选填）");
+	nameLayout->addRow(new QLabel("昵称："), m_searchEdit_username);
+
+	QFormLayout* mobileLayout = new QFormLayout;
+	m_searchEdit_mobile = new QLineEdit;
+	m_searchEdit_mobile->setPlaceholderText("请输入电话（选填）");
+	mobileLayout->addRow(new QLabel("电话："), m_searchEdit_mobile);
+
+	QFormLayout* emailLayout = new QFormLayout;
+	m_searchEdit_email = new QLineEdit;
+	m_searchEdit_email->setPlaceholderText("请输入邮箱（选填）");
+	emailLayout->addRow(new QLabel("邮箱："), m_searchEdit_email);
+
+	QFormLayout* genderdLayout = new QFormLayout;
+	m_searchCombo_gender = new QComboBox;
+	m_searchCombo_gender->addItem("男");
+	m_searchCombo_gender->addItem("女");
+	m_searchCombo_gender->addItem("未知");
+	m_searchCombo_gender->addItem("任意");
+	m_searchCombo_gender->setPlaceholderText("请选择性别（选填）");
+	m_searchCombo_gender->setCurrentIndex(3);
+	genderdLayout->addRow(new QLabel("性别："), m_searchCombo_gender);
+
+	m_searchBtn = new QPushButton("查询");
+
+	auto toplayout = new QHBoxLayout;
+	toplayout->addLayout(idLayout);
+	toplayout->addLayout(nameLayout);
+	toplayout->addLayout(mobileLayout);
+	toplayout->addLayout(emailLayout);
+	toplayout->addLayout(genderdLayout);
+	toplayout->addWidget(m_searchBtn);
+	toplayout->addStretch();
+	//------------------------------
+
+	//------第二层：新增，删除，批量操作-------
+	m_userAddBtn = new QPushButton("新增");
+	m_batchEnableBtn = new QPushButton("批量启用");
+	m_batchDisableBtn = new QPushButton("批量禁用");
+	m_batchDeleteBtn = new QPushButton("批量删除");
+
+	auto secondLayout = new QHBoxLayout;
+	secondLayout->addWidget(m_userAddBtn);
+	secondLayout->addWidget(m_batchEnableBtn);
+	secondLayout->addWidget(m_batchDisableBtn);
+	secondLayout->addWidget(m_batchDeleteBtn);
+	secondLayout->addStretch();
+	//------------------------------
+
+
+	//------第三层：表格视图---------------
+	m_tableView = new QTableView;
+	//-----------------------------
+
+	//------第四层：切换页面---------
+	//------------------------------
+
+	//------主布局------------------
+	auto mlayout = new QVBoxLayout;
+	mlayout->addLayout(toplayout);
+	mlayout->addLayout(secondLayout);
+	mlayout->addWidget(m_tableView);
+	//切换页面
+	//mlayout->addWidget(m_pageSwitch);
+	setLayout(mlayout);
 
 
 	//把模型交给视图显示：QTreeView - QStandardItemModel - QStandardItem
-	ui->tableView->setModel(m_model);
-	ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-	ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-	ui->tableView->setGridStyle(Qt::NoPen);
-	//ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	ui->tableView->verticalHeader()->setVisible(false);
-	ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	ui->tableView->setFocusPolicy(Qt::NoFocus);	
-	ui->tableView->setMouseTracking(true);
-	//ui->tableView->setStyleSheet("\
+	m_tableView->setModel(m_model);
+	m_tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+	m_tableView->setGridStyle(Qt::NoPen);
+	m_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	m_tableView->verticalHeader()->setVisible(false);
+	m_tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_tableView->setFocusPolicy(Qt::NoFocus);	
+	m_tableView->setMouseTracking(true);
+	//m_tableView->setStyleSheet("\
 	//	QTableView{ \
 	//		border: none;\
 	//		background-color: red;\
@@ -89,44 +167,60 @@ void UserManagerPage::init()
 	//		selection-background-color: rgb(220, 220, 220);\
 	//		selection-color: red;\
 	//	}");
-	//ui->tableView->setShowGrid(false); 
-	//ui->tableView->setAlternatingRowColors(true); //<-----双色显示")
+	//m_tableView->setShowGrid(false); 
+	//m_tableView->setAlternatingRowColors(true); //<-----双色显示")
 
 	////设置每一个item的高度
-	//ui->tableView->verticalHeader()->setDefaultSectionSize(50);
-	//ui->tableView->horizontalHeader()->setDefaultSectionSize(150);
+	//m_tableView->verticalHeader()->setDefaultSectionSize(50);
+	//m_tableView->horizontalHeader()->setDefaultSectionSize(150);
 
-	connect(ui->userAddBtn, &QPushButton::clicked, this, [=]() {
+	//添加用户
+	connect(m_userAddBtn, &QPushButton::clicked, this, [=]() {
 		if (!m_userAddDlg) {
 			m_userAddDlg = new UserAddDlg;
-			//SMaskWidget::instance()->addDialog(m_userAddDlg);
 			connect(m_userAddDlg, &UserAddDlg::newUser, [=](const QJsonObject& jUser) {
 					m_model->insertRow(m_model->rowCount(), createItems(jUser));
 					m_userAddDlg->close();
 				});
 		}
-		//m_userAddDlg->show();
 		SMaskWidget::instance()->popup(m_userAddDlg);
 		});
-	
 
+	//账号搜索
+	connect(m_searchEdit_userid, &QLineEdit::returnPressed, this, &UserManagerPage::onSearch);
+	connect(m_searchEdit_userid, &QLineEdit::textChanged, this, [=](const QString& text) {if (text.isEmpty()) onSearch(); });
 
-	connect(ui->searchEdit, &QLineEdit::returnPressed, this, &UserManagerPage::onSearch);
-	connect(ui->searchEdit, &QLineEdit::textChanged, this, [=](const QString& text) {if (text.isEmpty()) onSearch();});
-	connect(ui->searchBtn, &QPushButton::clicked, this, &UserManagerPage::onSearch);
-	connect(ui->batchEnableBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchEnable);
-	connect(ui->batchDisableBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchDisable);
-	connect(ui->batchDeleteBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchDelete);
+	//名称搜索
+	connect(m_searchEdit_username, &QLineEdit::returnPressed, this, &UserManagerPage::onSearch);
+	connect(m_searchEdit_username, &QLineEdit::textChanged, this, [=](const QString& text) {if (text.isEmpty()) onSearch();});
+
+	//电话搜索
+	connect(m_searchEdit_mobile, &QLineEdit::returnPressed, this, &UserManagerPage::onSearch);
+	connect(m_searchEdit_mobile, &QLineEdit::textChanged, this, [=](const QString& text) {if (text.isEmpty()) onSearch(); });
+
+	//邮箱搜索
+	connect(m_searchEdit_email, &QLineEdit::returnPressed, this, &UserManagerPage::onSearch);
+	connect(m_searchEdit_email, &QLineEdit::textChanged, this, [=](const QString& text) {if (text.isEmpty()) onSearch(); });
+
+	//性别搜索
+	connect(m_searchCombo_gender, &QComboBox::currentTextChanged, this, &UserManagerPage::onSearch);
+
+	//查找按钮
+	connect(m_searchBtn, &QPushButton::clicked, this, &UserManagerPage::onSearch);
+
+	connect(m_batchEnableBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchEnable);
+	connect(m_batchDisableBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchDisable);
+	connect(m_batchDeleteBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchDelete);
 
 	onSearch();
 
 	//设置表格视图的头视图
 	auto hHeaderView = new SHeaderView(Qt::Horizontal);
-	ui->tableView->setHorizontalHeader(hHeaderView);
+	m_tableView->setHorizontalHeader(hHeaderView);
 	
 	//item代理: 复选框
-	auto checkDelegate = new SCheckDelegate(ui->tableView);
-	ui->tableView->setItemDelegateForColumn(0, checkDelegate); //设置第一列的代理为复选框delegate
+	auto checkDelegate = new SCheckDelegate(m_tableView);
+	m_tableView->setItemDelegateForColumn(0, checkDelegate); //设置第一列的代理为复选框delegate
 
 	connect(hHeaderView, &SHeaderView::stateChanged, [=](int state) {
 		for (int i = 0; i < m_model->rowCount(); i++) {
@@ -154,13 +248,13 @@ void UserManagerPage::init()
 	});
 
 	//url代理: user_id
-	auto urlDelegate = new SUrlDelegate(ui->tableView);
-	ui->tableView->setItemDelegateForColumn(column("user_id"), urlDelegate);
+	auto urlDelegate = new SUrlDelegate(m_tableView);
+	m_tableView->setItemDelegateForColumn(column("user_id"), urlDelegate);
 	connect(urlDelegate, &SUrlDelegate::requestOpenUrl, this, &UserManagerPage::showUserDetails);
 
 	//开关代理: isEnable
-	auto switchDelegate = new SSwitchDelegate(ui->tableView);
-	ui->tableView->setItemDelegateForColumn(column("isEnable"), switchDelegate);
+	auto switchDelegate = new SSwitchDelegate(m_tableView);
+	m_tableView->setItemDelegateForColumn(column("isEnable"), switchDelegate);
 	connect(switchDelegate, &SSwitchDelegate::stateChanged, [=](int state,const QModelIndex& index) {
 
 		auto user_id = m_model->item(index.row(), column("user_id"))->text();
@@ -194,8 +288,8 @@ void UserManagerPage::init()
 		});
 
 	//操作代理
-	auto buttonDelegate = new SButtonDelegate(ui->tableView);
-	ui->tableView->setItemDelegateForColumn(column("operation"), buttonDelegate);
+	auto buttonDelegate = new SButtonDelegate(m_tableView);
+	m_tableView->setItemDelegateForColumn(column("operation"), buttonDelegate);
 	
 	auto detailBtn = buttonDelegate->addButton(new QPushButton("详细"));
 	auto modifyBtn = buttonDelegate->addButton(new QPushButton("修改"));
@@ -273,7 +367,7 @@ void UserManagerPage::setBatchEnabeld(bool enable)
 				jArray.append(recObj);
 
 				//直接更新
-				m_model->item(i, 6)->setData(enable, Qt::UserRole);
+				m_model->item(i, column("isEnable"))->setData(enable, Qt::UserRole);
 			}
 		}
 	}
@@ -455,35 +549,46 @@ void UserManagerPage::onSearch()
 {
 	QVariantMap params;
 	params.insert("isDeleted", false);
-	auto filter = ui->searchEdit->text();
-	if (!filter.isEmpty()) {
-		params.insert("query", filter);
+	if (!m_searchEdit_userid->text().isEmpty()) {
+		params.insert("user_id", m_searchEdit_userid->text());
+	}
+	if (!m_searchEdit_username->text().isEmpty()) {
+		params.insert("user_name", m_searchEdit_username->text());
+	}
+	if (!m_searchEdit_email->text().isEmpty()) {
+		params.insert("email", m_searchEdit_email->text());
+	}
+	if (!m_searchEdit_mobile->text().isEmpty()) {
+		params.insert("mobile", m_searchEdit_mobile->text());
+	}
+	if (m_searchCombo_gender->currentText() != "任意") {
+		params.insert("gender", m_searchCombo_gender->currentText());
 	}
 	SHttpClient(URL("/api/user/list")).debug(true)
-		.header("Authorization","Bearer" + sApp->userData("user/token").toString())
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 		.params(params) // 参数形式 ?ddd=&xxx=
 		.fail([=](const QString& msg, int code) {
 #ifdef _DEBUG
-			qWarning()  << msg << code;
+		qWarning() << msg << code;
 #endif
 			})
-		.success([=](const QByteArray& data) { 
-			QJsonParseError error;
-			auto jdom = QJsonDocument::fromJson(data, &error);
-			if (error.error != QJsonParseError::NoError) {
+		.success([=](const QByteArray& data) {
+		QJsonParseError error;
+		auto jdom = QJsonDocument::fromJson(data, &error);
+		if (error.error != QJsonParseError::NoError) {
 #ifdef _DEBUG
-				qWarning() << "Json解析错误: " << error.errorString();
+			qWarning() << "Json解析错误: " << error.errorString();
 #endif
-				return;
-			}
-			if (jdom["code"].toInt() < 1000) {
-				parseJson(jdom.object()); // 解析json数据
-			}
-			else {
+			return;
+		}
+		if (jdom["code"].toInt() < 1000) {
+			parseJson(jdom.object()); // 解析json数据
+		}
+		else {
 #ifdef _DEBUG 
-				qWarning() << "查询数据失败: " << jdom["message"].toString();
+			qWarning() << "查询数据失败: " << jdom["message"].toString();
 #endif
-			}
+		}
 			})
 		.get(); // 发送get请求
 }
@@ -503,15 +608,8 @@ void UserManagerPage::parseJson(const QJsonObject& obj)
 		m_model->appendRow(createItems(jUser));
 		
 	}
-	ui->tableView->setColumnWidth(0, 22);
-	ui->tableView->setColumnWidth(1, 100);
-	ui->tableView->setColumnWidth(2, 80);
-	ui->tableView->setColumnWidth(3, 45);
-	ui->tableView->setColumnWidth(4, 100);
-	ui->tableView->setColumnWidth(5, 180);
-	ui->tableView->setColumnWidth(6, 85);
-	ui->tableView->setColumnWidth(7, 300);//TableView_ButtonWidth * 3 + 50
-	dynamic_cast<SHeaderView*>(ui->tableView->horizontalHeader())->setState(Qt::Unchecked);
+	m_tableView->setColumnWidth(column("operation"), 300);//TableView_ButtonWidth * 3 + 50
+	dynamic_cast<SHeaderView*>(m_tableView->horizontalHeader())->setState(Qt::Unchecked);
 }
 
 int UserManagerPage::column(const QString& field)
@@ -526,7 +624,7 @@ int UserManagerPage::column(const QString& field)
 QList<QStandardItem*> UserManagerPage::createItems(const QJsonObject& jUser)
 {
 	QList<QStandardItem*> items;
-	auto gender = jUser["gender"].toInteger();
+	auto gender = jUser["gender"].toInt();
 	auto isEnable = jUser["isEnable"].toInt();
 	for (const auto& field : m_fieldName) {
 		auto item = new QStandardItem;

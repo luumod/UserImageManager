@@ -5,11 +5,13 @@
 #include <QStandardItemModel>
 #include <QModelIndex>
 
-namespace Ui { class User_ManagerPage; }
-
 class UserDetailsDlg;
 class UserAddDlg;
 class UserEditDlg;
+class QTableView;
+class QLineEdit;
+class QPushButton;
+class QComboBox;
 class UserManagerPage : public QWidget
 {
 	Q_OBJECT
@@ -35,8 +37,7 @@ private:
 
 	int column(const QString& field);
 	QList<QStandardItem*> createItems(const QJsonObject& obj);
-	QStringList m_fieldName = { "","user_id","user_name","gender","mobile","email","isEnable","operation" };
-	Ui::User_ManagerPage* ui{};
+	QStringList m_fieldName = { "","id","user_id","user_name","gender","mobile","email","isEnable","operation" };
 	QStandardItemModel* m_model{};
 	QModelIndex m_currentIndex;
 
@@ -44,6 +45,20 @@ private:
 	UserEditDlg* m_userEditDlg{};
 	UserAddDlg* m_userAddDlg{};
 
+	//布局
+	QLineEdit* m_searchEdit_userid{};
+	QLineEdit* m_searchEdit_username{};
+	QLineEdit* m_searchEdit_mobile{};
+	QLineEdit* m_searchEdit_email{};
+	QComboBox* m_searchCombo_gender{};
+	QPushButton* m_searchBtn{};
+
+	QPushButton* m_userAddBtn{};
+	QPushButton* m_batchEnableBtn{};
+	QPushButton* m_batchDisableBtn{};
+	QPushButton* m_batchDeleteBtn{};
+
+	QTableView* m_tableView{};
 };
 
 #endif //!  USERMANAGERPAGE_H_

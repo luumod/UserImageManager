@@ -218,20 +218,34 @@ void Server::route_userInfo()
 		}
 
 		auto uquery = request.query();
-		auto user_id = uquery.queryItemValue("user_id");
 		auto isEnable = uquery.queryItemValue("isEnable");
 		auto page = uquery.queryItemValue("page").toInt();
 		auto pageSize = uquery.queryItemValue("pageSize").toInt();
-		auto q = uquery.queryItemValue("query");
+
+		auto user_id = uquery.queryItemValue("user_id");
+		auto user_name = uquery.queryItemValue("user_name");
+		auto mobile = uquery.queryItemValue("mobile");
+		auto email = uquery.queryItemValue("email");
+		auto gender = uquery.queryItemValue("gender");
+
 		QString filter = "WHERE isDeleted=false ";
-		//通过user_id的查询
+		//模糊搜索
 		if (!user_id.isEmpty()) {
-			filter += QString(" and user_id='%1' ").arg(user_id);
+			filter += QString(" AND user_id LIKE '%%1%'").arg(user_id);
 		}
-		//通过query的模糊搜索：前提user_id为空
-		else if (!q.isEmpty()) {
-			filter += QString(" and (user_id LIKE '%%1%' OR user_name LIKE '%%1%' OR mobile LIKE '%%1%' OR email LIKE '%%1%') ").arg(q);
+		if (!user_name.isEmpty()) {
+			filter += QString(" AND user_name LIKE '%%1%'").arg(user_name);
 		}
+		if (!mobile.isEmpty()) {
+			filter += QString(" AND mobile LIKE '%%1%'").arg(mobile);
+		}
+		if (!email.isEmpty()) {
+			filter += QString(" AND email LIKE '%%1%'").arg(email);
+		}
+		if (!gender.isEmpty()) {
+			filter += QString(" AND gender=%1").arg(gender == "男" ? "1" : gender == "女" ? "2" : "0");
+		}
+
 		if (!isEnable.isEmpty()) {
 			filter += QString(" and isEnable=%1 ").arg((isEnable == "true" ? 1 : 0));
 		}
@@ -279,7 +293,7 @@ void Server::route_userInfo()
 		return SResult::success(jobj);
 		});
 
-	//用户查询(精确查询)
+	//用户查询(精确查询:user_id)
 	m_server.route("/api/user/queryUser", [](const QHttpServerRequest& request) {
 		//校验参数
 		std::optional<QByteArray> token = CheckToken(request);

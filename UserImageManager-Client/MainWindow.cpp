@@ -13,8 +13,8 @@
 MainWindow::MainWindow(QWidget* parent)
 	:QWidget(parent)
 {
-	this->setMinimumSize(1200,600);
-	this->resize(this->minimumSize());
+	//this->setMinimumSize(1700,900);
+	this->resize(1700,900);
 	init();
 
 	SMaskWidget::instance()->setMainWindow(this);
