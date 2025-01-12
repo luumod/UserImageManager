@@ -24,6 +24,10 @@ RoundedImageWidget::~RoundedImageWidget()
 {	
 }
 
+void RoundedImageWidget::setStyle()
+{
+}
+
 void RoundedImageWidget::setPixmap(const QString& path)
 {
 	m_pixmap = QPixmap(path);
@@ -60,5 +64,8 @@ void RoundedImageWidget::paintEvent(QPaintEvent* event)
 	painter.setClipPath(path);
 	if (!m_pixmap.isNull()) {
 		painter.drawPixmap(rect(), m_pixmap);
-	}
+	}/*
+	else {
+		painter.drawText(rect(), Qt::AlignCenter, "No Image");
+	}*/
 }

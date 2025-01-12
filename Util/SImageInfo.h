@@ -3,15 +3,37 @@
 
 class ImageInfo {
 public:
-	int image_id{};
-	int image_ower_id{};
-	QString image_path{};
-	QString image_name{};
-	QString image_desc{};
+	int m_id{};
+	int m_owner_id{};
+
+	QString m_path{}; //absolute path
+	QString m_name{};
+	int m_size{};
+	QString m_format{};
+	int m_share{};
+	QString m_type{};
+	int m_download{};
+	QString m_ResolutionRatio{};
+	QString m_quality{};
+	QString m_upload_time{};
+	QString m_desc{};
 	ImageInfo(){}
-	ImageInfo(int image_id, int image_ower_id, const QString& image_path, const QString& image_name, const QString& image_desc)
-		:image_id(image_id), image_ower_id(image_ower_id), image_path(image_path), image_name(image_name), image_desc(image_desc) {
+	ImageInfo(int id, int owner_id, const QString& path, const QString& name, int size, const QString& format, int share, const QString& type, int download, const QString& resolutionRatio, const QString& quality, const QString& upload_time, const QString& desc)
+		: m_id(id), m_owner_id(owner_id), m_path(path), m_name(name), m_size(size), m_format(format), m_share(share), m_type(type), m_download(download), m_ResolutionRatio(resolutionRatio), m_quality(quality), m_upload_time(upload_time), m_desc(desc) {
 	}
+	inline void set_image_id(int id) { m_id = id; }
+	inline void set_image_owner_id(int owner_id) { m_owner_id = owner_id; }
+	inline void set_image_path(const QString& path) { m_path = path; }
+	inline void set_image_name(const QString& name) { m_name = name; }
+	inline void set_image_size(int size) { m_size = size; }
+	inline void set_image_format(const QString& format) { m_format = format; }
+	inline void set_image_share(int share) { m_share = share; }
+	inline void set_image_type(const QString& type) { m_type = type; }
+	inline void set_image_download(int download) { m_download = download; }
+	inline void set_image_ResolutionRatio(const QString& resolutionRatio) { m_ResolutionRatio = resolutionRatio; }
+	inline void set_image_quality(const QString& quality) { m_quality = quality; }
+	inline void set_image_upload_time(const QString& upload_time) { m_upload_time = upload_time; }
+	inline void set_image_desc(const QString& desc) { m_desc = desc; }
 };
 
 #endif

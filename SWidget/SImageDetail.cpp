@@ -114,7 +114,7 @@ void SImageDetailDlg::setData(ImageInfo info)
 void SImageDetailDlg::updateUi()
 {
 	//获取图片
-	auto path = QDir::currentPath() + "/" + m_imageInfo.image_path;
+	auto path = QDir::currentPath() + "/" + m_imageInfo.m_path;
 	QFile imageFile(path);
 	if (!imageFile.open(QIODevice::ReadOnly)) {
 		qWarning() << "Failed to open image file:" << imageFile.errorString();
@@ -122,15 +122,15 @@ void SImageDetailDlg::updateUi()
 	}
 
 	//图片名称
-	m_imageName->setText(m_imageInfo.image_name);
+	m_imageName->setText(m_imageInfo.m_name);
 	//图片尺寸
-	m_imageSize->setText(QString::number(imageFile.size() / 1024.0 / 1024.0) + "MB");
+	m_imageSize->setText(QString::number(m_imageInfo.m_size / 1024.0 / 1024.0) + "MB");
 	//图片类型
-	m_imageType->setText(QFileInfo(imageFile).suffix());
+	m_imageType->setText(m_imageInfo.m_type);
 	//图片归属
 	m_imageOwer->setText(sApp->userData("user/user_name").toString());
 	//图片介绍
-	m_imageDesc->setText(m_imageInfo.image_desc);
+	m_imageDesc->setText(m_imageInfo.m_desc);
 	//加载图片
 	m_imageLabel->setPixmap(QPixmap::fromImage(QImage(imageFile.fileName())));
 }

@@ -84,12 +84,35 @@ void PersonalSpace::onClickedOneImage(int id) {
 			 this); //图片id
 	}
 	auto image_real_index = m_currentPage * m_images.size() + id;;
-	m_imageDetailDlg->setData(ImageInfo(
-		m_imagesInfoMap[image_real_index].image_id,
-		m_imagesInfoMap[image_real_index].image_ower_id,
-		m_imagesInfoMap[image_real_index].image_path,
-		m_imagesInfoMap[image_real_index].image_name,
-		m_imagesInfoMap[image_real_index].image_desc)),
+	m_imageDetailDlg->setData(m_imagesInfoMap[image_real_index]);
+	/*m_imageDetailDlg->setData(ImageInfo(
+		m_imagesInfoMap[image_real_index].m_id,
+		m_imagesInfoMap[image_real_index].m_owner_id,
+		m_imagesInfoMap[image_real_index].m_path,
+		m_imagesInfoMap[image_real_index].m_name,
+		m_imagesInfoMap[image_real_index].m_size,
+		m_imagesInfoMap[image_real_index].m_format,
+		m_imagesInfoMap[image_real_index].m_share,
+		m_imagesInfoMap[image_real_index].m_type,
+		m_imagesInfoMap[image_real_index].m_download,
+		m_imagesInfoMap[image_real_index].m_ResolutionRatio,
+		m_imagesInfoMap[image_real_index].m_quality,
+		m_imagesInfoMap[image_real_index].m_upload_time,
+		m_imagesInfoMap[image_real_index].m_desc));
+		ImageInfo(image["image_id"].toInt()
+				, image["owner_id"].toInt()
+				, image["image_path"].toString()
+				, image["image_name"].toString()
+				, image["image_size"].toInt()
+				, image["image_format"].toString()
+				, image["image_share"].toInt()
+				, image["image_type"].toString()
+				, image["image_download"].toInt()
+				, image["image_ResolutionRatio"].toString()
+				, image["image_quality"].toString()
+				, image["upload_time"].toString()
+				, image["description"].toString())
+	*/
 	m_imageDetailDlg->resize(this->size());
 	m_imageDetailDlg->show();
 }
@@ -144,11 +167,19 @@ void PersonalSpace::loadImage(const QJsonArray& imagesArray)
 	for (int i = 0; i < imagesArray.size(); i++) {
 		auto image = imagesArray[i].toObject();
 		m_imagesInfoMap.insert(i,
-			{ image["image_id"].toVariant().toInt(),
-			image["ower_user_id"].toVariant().toInt(),
-			image["image_path"].toVariant().toString(),
-			image["image_name"].toVariant().toString(),
-			image["description"].toVariant().toString() });
+			ImageInfo(image["image_id"].toInt()
+				, image["owner_id"].toInt()
+				, image["image_path"].toString()
+				, image["image_name"].toString()
+				, image["image_size"].toInt()
+				, image["image_format"].toString()
+				, image["image_share"].toInt()
+				, image["image_type"].toString()
+				, image["image_download"].toInt()
+				, image["image_ResolutionRatio"].toString()
+				, image["image_quality"].toString()
+				, image["upload_time"].toString()
+				, image["description"].toString()));
 	}
 }
 
@@ -156,9 +187,9 @@ void PersonalSpace::parseJson()
 {
 	for (int i = m_firstImageIndex, j = 0; i <= m_lastImageIndex; i++, j++) { //[0-5] [6-11] [...]
 		//加载每一张图片
-		m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].image_path
-			, m_imagesInfoMap[i].image_name
-			, m_imagesInfoMap[i].image_desc);
+		m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].m_path
+			, m_imagesInfoMap[i].m_name
+			, m_imagesInfoMap[i].m_desc);
 	} //(F:/code/UserImageManager/bin)  /  (../images/upload/1/1173012900_20250109145406_test1.jpg)
 }
 

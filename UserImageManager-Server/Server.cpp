@@ -736,10 +736,24 @@ void Server::route_userImage()
 			return SResult::error(SResultCode::UserDisabled);
 		}
 
-		auto ower_user_id = query.value("id").toInt(); //eg. ower_user_id <==> user: id 
+		auto owner_id = query.value("id").toInt(); //eg. owner_id <==> user: id 
 		auto description = uquery.queryItemValue("description");
 		if (description.isEmpty()) {
 			description = "";
+		}
+		auto image_type = uquery.queryItemValue("image_type");
+		if (image_type.isEmpty()) {
+			image_type = "默认";
+		}
+		auto image_share = uquery.queryItemValue("image_share").toInt();
+		auto image_download = uquery.queryItemValue("image_download").toInt();
+		auto image_ResolutionRatio = uquery.queryItemValue("image_ResolutionRatio");
+		if (image_ResolutionRatio.isEmpty()) {
+			image_ResolutionRatio = "未知";
+		}
+		auto image_quality = uquery.queryItemValue("image_quality");
+		if (image_quality.isEmpty()) {
+			image_quality = "未知";
 		}
 		auto data = request.body();
 		if (data.isEmpty()) {
@@ -749,12 +763,12 @@ void Server::route_userImage()
 		if (!parse.parse()) {
 			return SResult::error(SResultCode::ParamInvalid);
 		}
-		auto path = QString("../images/upload/%1/").arg(ower_user_id);
+		auto path = QString("../images/upload/%1/").arg(owner_id);
 		QDir dir;
 		if (!dir.exists(path)) {
 			dir.mkpath(path);
 		}
-		//图片路径格式：images/upload/ower_user_id/user_id_时间戳_图片原名称.后缀名
+		//图片路径格式：images/upload/owner_id/user_id_时间戳_图片原名称.后缀名
 		QFile file(QString(path + user_id 
 			+ "_" + QDateTime::currentDateTime().toString("yyyyMMddHHmmss") 
 			+ "_" + QFileInfo(parse.filename()).fileName()));
@@ -763,10 +777,20 @@ void Server::route_userImage()
 		}
 		file.write(parse.data());
 		//把路径写入数据库
-		query.prepare(QString("INSERT IGNORE INTO user_image (ower_user_id, image_path,image_name, image_size,image_type,upload_time,description) VALUES (%1,'%2','%3',%4,'%5','%6','%7')")
-			.arg(ower_user_id).arg(file.fileName()).arg(QFileInfo(parse.filename()).fileName())
-			.arg(file.size()).arg(QFileInfo(parse.filename()).suffix())
-			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")).arg(description));
+		query.prepare(QString("INSERT IGNORE INTO user_image(owner_id, image_path,image_name, image_size,image_type,upload_time,description,image_format,image_share,image_download,image_ResolutionRatio,image_quality) VALUES (%1,'%2','%3',%4,'%5','%6','%7','%8',%9,%10,'%11','%12')")
+			.arg(owner_id)
+			.arg(file.fileName())
+			.arg(QFileInfo(parse.filename()).fileName())
+			.arg(file.size())
+			.arg(image_type)
+			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"))
+			.arg(description)
+			.arg(QFileInfo(parse.filename()).suffix())
+			.arg(image_share)
+			.arg(image_download)
+			.arg(image_ResolutionRatio)
+			.arg(image_quality)
+		);
 		query.exec();
 #if _DEBUG
 		qDebug() << "用户图片上传";
@@ -815,9 +839,9 @@ void Server::route_userImage()
 			responder.write(SResultCode::UserNotFound.toJson(), "application/json");
 			return;	
 		}
-		auto ower_user_id = query.value("id").toInt(); //获取用户id
-		query.prepare(QString("SELECT image_id,image_path,ower_user_id,image_name,image_size,image_type,upload_time,description FROM user_image WHERE ower_user_id=%1")
-			.arg(ower_user_id));
+		auto owner_id = query.value("id").toInt(); //获取用户id
+		query.prepare(QString("SELECT * FROM user_image WHERE owner_id=%1")
+			.arg(owner_id));
 #if _DEBUG	
 		qDebug() << "用户图片获取";
 		qDebug() << query.lastQuery();
@@ -831,11 +855,16 @@ void Server::route_userImage()
 		while (query.next()) {
 			QJsonObject jobj;
 			jobj.insert("image_id", query.value("image_id").toInt());
-			jobj.insert("ower_user_id", query.value("ower_user_id").toInt());
+			jobj.insert("owner_id", query.value("owner_id").toInt());
 			jobj.insert("image_path", query.value("image_path").toString());
 			jobj.insert("image_name", query.value("image_name").toString());
 			jobj.insert("image_size", query.value("image_size").toInt());
+			jobj.insert("image_format", query.value("image_format").toString());
+			jobj.insert("image_share", query.value("image_share").toInt());
 			jobj.insert("image_type", query.value("image_type").toString());
+			jobj.insert("image_download", query.value("image_download").toInt());
+			jobj.insert("image_ResolutionRatio", query.value("image_ResolutionRatio").toString());
+			jobj.insert("image_quality", query.value("image_quality").toString());
 			jobj.insert("upload_time", query.value("upload_time").toString());
 			jobj.insert("description", query.value("description").toString());
 			jarray.append(jobj);

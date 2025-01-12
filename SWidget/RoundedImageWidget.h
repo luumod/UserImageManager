@@ -14,7 +14,10 @@ public:
 	RoundedImageWidget(int id, QWidget* parent = nullptr);
 	RoundedImageWidget(QWidget* parent = nullptr);
 	~RoundedImageWidget();
+	void setStyle();
 	void setPixmap(const QString& path);
+	inline int imageWidth() {return m_pixmap.width(); }
+	inline int imageHeight() {return m_pixmap.height(); }
 	bool isNull()const;
 signals:
 	void clickedImage(int id);
