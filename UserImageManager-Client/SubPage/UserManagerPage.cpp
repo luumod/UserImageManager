@@ -1,5 +1,6 @@
 ﻿#include "UserManagerPage.h"
 #include "UserManagerPage.h"
+#include "UserManagerPage.h"
 #include "SHttpClient.h"
 #include "SApp.h"
 #include "SHeaderView.h"
@@ -19,6 +20,7 @@
 #include <QTableView>
 #include <QFormLayout>
 #include <QComboBox>
+#include <QRandomGenerator>
 
 UserManagerPage::UserManagerPage(QWidget* parent)
 	:QWidget(parent)
@@ -39,9 +41,9 @@ UserManagerPage::~UserManagerPage()
 void UserManagerPage::init()
 {
 	SFieldTranslate::instance()->addTrans("user/", "");
-	SFieldTranslate::instance()->addTrans("user/id", "索引");
-	SFieldTranslate::instance()->addTrans("user/user_id", "用户ID");
-	SFieldTranslate::instance()->addTrans("user/user_name", "用户名");
+	SFieldTranslate::instance()->addTrans("user/id", "用户编号");
+	SFieldTranslate::instance()->addTrans("user/user_id", "账号");
+	SFieldTranslate::instance()->addTrans("user/user_name", "用户昵称");
 	SFieldTranslate::instance()->addTrans("user/gender", "性别");
 	SFieldTranslate::instance()->addTrans("user/email", "邮箱");
 	SFieldTranslate::instance()->addTrans("user/mobile", "电话");
@@ -111,6 +113,30 @@ void UserManagerPage::init()
 	//-----------------------------
 
 	//------第四层：切换页面---------
+	auto bottomLayout = new QHBoxLayout;
+	auto totalLab = new QLabel;
+	auto nextPageBtn = new QPushButton;
+	nextPageBtn->setIcon(QPixmap(":/ResourceClient/next.png"));
+	auto prevPageBtn = new QPushButton;
+	prevPageBtn->setIcon(QPixmap(":/ResourceClient/pre.png"));
+	auto pageLab = new QLabel;
+	pageLab->setText(QString::number(m_currentPage)); //从1开始
+	auto text1= new QLabel("前往");
+	auto pageEdit = new QLineEdit;
+	pageEdit->setFixedWidth(30);
+	pageEdit->setAlignment(Qt::AlignCenter);
+	pageEdit->setText(QString::number(m_currentPage));
+	auto text2= new QLabel("页");
+	auto totalPageLab = new QLabel;
+	bottomLayout->addWidget(totalLab);
+	bottomLayout->addWidget(prevPageBtn);
+	bottomLayout->addWidget(pageLab);
+	bottomLayout->addWidget(nextPageBtn);
+	bottomLayout->addWidget(text1);
+	bottomLayout->addWidget(pageEdit);
+	bottomLayout->addWidget(text2);
+	bottomLayout->addWidget(totalPageLab);
+	bottomLayout->addStretch();
 	//------------------------------
 
 	//------主布局------------------
@@ -118,8 +144,7 @@ void UserManagerPage::init()
 	mlayout->addLayout(toplayout);
 	mlayout->addLayout(secondLayout);
 	mlayout->addWidget(m_tableView);
-	//切换页面
-	//mlayout->addWidget(m_pageSwitch);
+	mlayout->addLayout(bottomLayout);
 	setLayout(mlayout);
 
 
@@ -175,12 +200,14 @@ void UserManagerPage::init()
 	//m_tableView->horizontalHeader()->setDefaultSectionSize(150);
 
 	//添加用户
-	connect(m_userAddBtn, &QPushButton::clicked, this, [=]() {
+	connect(m_userAddBtn, &QPushButton::released, this, [=]() {
 		if (!m_userAddDlg) {
 			m_userAddDlg = new UserAddDlg;
 			connect(m_userAddDlg, &UserAddDlg::newUser, [=](const QJsonObject& jUser) {
 					m_model->insertRow(m_model->rowCount(), createItems(jUser));
 					m_userAddDlg->close();
+
+					onSearch();
 				});
 		}
 		SMaskWidget::instance()->popup(m_userAddDlg);
@@ -206,11 +233,49 @@ void UserManagerPage::init()
 	connect(m_searchCombo_gender, &QComboBox::currentTextChanged, this, &UserManagerPage::onSearch);
 
 	//查找按钮
-	connect(m_searchBtn, &QPushButton::clicked, this, &UserManagerPage::onSearch);
+	connect(m_searchBtn, &QPushButton::released, this, &UserManagerPage::onSearch);
 
-	connect(m_batchEnableBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchEnable);
-	connect(m_batchDisableBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchDisable);
-	connect(m_batchDeleteBtn, &QPushButton::clicked, this, &UserManagerPage::onBatchDelete);
+	//批量操作
+	connect(m_batchEnableBtn, &QPushButton::released, this, &UserManagerPage::onBatchEnable);
+	connect(m_batchDisableBtn, &QPushButton::released, this, &UserManagerPage::onBatchDisable);
+	connect(m_batchDeleteBtn, &QPushButton::released, this, &UserManagerPage::onBatchDelete);
+	
+
+
+	//底部
+	connect(this, &UserManagerPage::totalRecordsCountChanged, this, [=](int count) {
+		totalLab->setText(QString("共%1条记录").arg(count));
+		checkPageValidity();
+		});
+
+	connect(this, &UserManagerPage::totalPagesCountChanged, this, [=](int count) {
+		totalPageLab->setText(QString("共%1页").arg(count));
+		checkPageValidity();
+		});
+
+	connect(this, &UserManagerPage::pageChanged, [=](int page) {
+		pageLab->setText(QString::number(page));
+		pageEdit->setText(QString::number(page));
+		});
+
+	//下一页
+	connect(nextPageBtn, &QPushButton::released, this, [=](){
+		m_currentPage++;
+		checkPageValidity();
+		onSearch();
+		});
+	//上一页
+	connect(prevPageBtn, &QPushButton::released, this, [=]() {
+		m_currentPage--;
+		checkPageValidity();
+		onSearch();
+		});
+	//指定页
+	connect(pageEdit, &QLineEdit::returnPressed, this, [=]() {
+		m_currentPage = pageEdit->text().toInt();
+		checkPageValidity();
+		onSearch();
+		});
 
 	onSearch();
 
@@ -305,6 +370,7 @@ void UserManagerPage::init()
 	modifyBtn->setFixedSize(TableView_ButtonWidth, TableView_ButtonHeight);
 	delBtn->setFixedSize(TableView_ButtonWidth, TableView_ButtonHeight);
 
+	//多种操作：详细信息，修改，删除
 	connect(buttonDelegate, &SButtonDelegate::buttonClicked, this, [=](int id,const QModelIndex& index) {
 		if (id == 0) { //详细
 			showUserDetails(index);
@@ -436,7 +502,6 @@ void UserManagerPage::showUserDetails(const QModelIndex& index)
 		connect(m_detailsDlg, &UserDetailsDlg::userChanged,this, [=](const QJsonObject& juser) {
 			//只能禁用用户
 			m_model->item(m_currentIndex.row(), column("isEnable"))->setData(juser.value("isEnable").toBool(), Qt::UserRole);
-
 			sApp->updateUserData(juser);
 			});
 	}
@@ -549,6 +614,8 @@ void UserManagerPage::onSearch()
 {
 	QVariantMap params;
 	params.insert("isDeleted", false);
+	params.insert("page", m_currentPage);
+	params.insert("pageSize", m_pageSize);
 	if (!m_searchEdit_userid->text().isEmpty()) {
 		params.insert("user_id", m_searchEdit_userid->text());
 	}
@@ -595,6 +662,7 @@ void UserManagerPage::onSearch()
 
 void UserManagerPage::parseJson(const QJsonObject& obj)
 {
+	qDebug() << "***********************   parseJson ********************************";
 	m_model->clear();
 
 	for (int i = 0; i < m_fieldName.size(); i++) {
@@ -602,6 +670,13 @@ void UserManagerPage::parseJson(const QJsonObject& obj)
 		m_model->setHorizontalHeaderItem(i, new QStandardItem(SFieldTranslate::instance()->trans("user", m_fieldName[i])));
 	}
 	auto jArray = obj["data"]["list"].toArray();
+	m_lastPage = obj["data"]["last_page"].toInt();
+	m_totalCount = obj["data"]["total_records"].toInt();
+	//当模糊查找时，底部的页数及记录数信息显示的是（对于此查找结果）的对应值，需要及时更新
+	//若无模糊查找，则对应值就是全部记录的值
+	emit totalRecordsCountChanged(m_totalCount); 
+	emit totalPagesCountChanged(m_lastPage);
+
 	for (int i = 0; i < jArray.size(); i++) {
 		auto jUser = jArray[i].toObject();
 		//往模型中插入数据
@@ -610,6 +685,15 @@ void UserManagerPage::parseJson(const QJsonObject& obj)
 	}
 	m_tableView->setColumnWidth(column("operation"), 300);//TableView_ButtonWidth * 3 + 50
 	dynamic_cast<SHeaderView*>(m_tableView->horizontalHeader())->setState(Qt::Unchecked);
+}
+
+void UserManagerPage::checkPageValidity()
+{
+	if (m_currentPage > m_lastPage || m_currentPage < 1) {
+		m_currentPage = 1;
+	}
+
+	emit pageChanged(m_currentPage);
 }
 
 int UserManagerPage::column(const QString& field)

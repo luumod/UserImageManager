@@ -69,7 +69,9 @@ void UserAddDlg::init()
 		mlayout->addLayout(bhlayout);
 
 		connect(okBtn, &QPushButton::clicked, this, [=]() {
-			m_juser.insert("user_id", m_user_id_edit->text());
+			auto user_id = m_user_id_edit->text();
+
+			m_juser.insert("user_id", user_id);
 			m_juser.insert("user_name", m_username_edit->text());
 			m_juser.insert("mobile", m_mobile_edit->text());
 			m_juser.insert("email", m_email_edit->text());
@@ -88,12 +90,33 @@ void UserAddDlg::init()
 #endif
 				}
 				if (jdom["code"].toInt() < 1000) {
-					//添加成功
-					emit newUser(m_juser);
+					//为了查询到用户的id
+					SHttpClient(URL("/api/user/queryUser")).debug(true)
+						.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+						.param("user_id", user_id) //查询user_id的用户信息
+						.fail([=](const QString& msg, int code) {
+							})
+						.success([=](const QByteArray& data)
+							{
+								QJsonParseError error;
+								auto jdom = QJsonDocument::fromJson(data, &error);
+								if (jdom["code"].toInt() < 1000) {
+									auto id = jdom["data"]["list"].toArray()[0].toObject()["id"].toInt();
+									m_juser.insert("id", id);
+									emit newUser(m_juser);
+								}
+
+							})
+						.get();
 				}
 					})
 				.post();
+
+			
+
 			});
+
+
 
 		connect(cancelBtn, & QPushButton::clicked, this, [=]() {
 			this->close();

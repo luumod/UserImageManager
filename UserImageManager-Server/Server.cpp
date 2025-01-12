@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <optional>
+#include <QRandomGenerator>
 
 #define CheckJsonParse(request)\
 	QJsonParseError error;\
@@ -86,6 +87,32 @@ Server::Server()
 	//开启服务器
 	m_server.listen(QHostAddress::Any, 8888);
 	
+
+	////插入测试数据
+	/*{
+		qDebug() << "test data started";
+		SSqlConnectionWrap wrap;
+		auto db = wrap.openConnection();
+		db.transaction();
+		QSqlQuery query(db);
+		query.prepare("INSERT INTO user_info(user_id,password,user_name,gender,mobile,email) VALUES(?,?,?,?,?,?)");
+		for (size_t i = 0; i < 10000; i++)
+		{
+			query.bindValue(0, QString::number(99999+i));
+			query.bindValue(1, QString::number(QRandomGenerator::global()->bounded(100000, 999999)));
+			query.bindValue(2, QString("user_%1").arg(i));
+			query.bindValue(3, i % 3);
+			query.bindValue(4, QString::number(QRandomGenerator::global()->bounded(10000000000, 19999999999)));
+			query.bindValue(5, QString("123456%1@qq.com").arg(i));
+			if (!query.exec()) {
+				qDebug() << "insert error:" << query.lastError().text();
+			}
+		}
+		db.commit();
+		qDebug() << "test data finished";
+	}*/
+
+
 	//添加路径丢失处理
 	m_server.setMissingHandler([](const QHttpServerRequest& request,
 		QHttpServerResponder&& responder) {
@@ -221,7 +248,6 @@ void Server::route_userInfo()
 		auto isEnable = uquery.queryItemValue("isEnable");
 		auto page = uquery.queryItemValue("page").toInt();
 		auto pageSize = uquery.queryItemValue("pageSize").toInt();
-
 		auto user_id = uquery.queryItemValue("user_id");
 		auto user_name = uquery.queryItemValue("user_name");
 		auto mobile = uquery.queryItemValue("mobile");
@@ -253,7 +279,10 @@ void Server::route_userInfo()
 		QSqlQuery query(wrap.openConnection());
 		//查询总记录条数
 		query.exec(QString("SELECT COUNT(*) total FROM user_info %1 ").arg(filter));
+#if _DEBUG
+		qDebug() << "---------------查询总记录数";
 		qDebug() << query.lastQuery();
+#endif
 		query.next();
 		int total_records = query.record().value("total").toInt();
 
@@ -272,7 +301,7 @@ void Server::route_userInfo()
 		sql += QString(" LIMIT %1,%2;").arg((page - 1) * pageSize).arg(pageSize);
 		query.exec(sql);
 #if _DEBUG
-		qDebug() << "用户查询";
+		qDebug() << "查询用户信息";
 		qDebug() << query.lastQuery();
 #endif
 		CheckSqlQuery(query);
@@ -343,7 +372,6 @@ void Server::route_userInfo()
 
 	//用户创建
 	m_server.route("/api/user/create", [](const QHttpServerRequest& request) {
-		qDebug() << QString(request.body());
 		CheckJsonParse(request);
 
 		//校验参数
@@ -365,14 +393,14 @@ void Server::route_userInfo()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare("INSERT IGNORE INTO user_info (user_id,password,user_name,gender,mobile,email) VALUES(?,?,?,?,?,?)");
-		query.bindValue(0, jdom["user_id"].toString());
-		query.bindValue(1, password);
-		query.bindValue(2, jdom["user_name"].toString());
-		query.bindValue(3, jdom["gender"].toInt());
-		query.bindValue(4, jdom["mobile"].toString());
-		query.bindValue(5, jdom["email"].toString());
-		query.exec();
+		QString sql = QString("INSERT IGNORE INTO user_info (user_id,password,user_name,gender,mobile,email) VALUES('%1','%2','%3',%4,'%5','%6')")
+			.arg(jdom["user_id"].toString())
+			.arg(password)
+			.arg(jdom["user_name"].toString())
+			.arg(jdom["gender"].toInt())
+			.arg(jdom["mobile"].toString())
+			.arg(jdom["email"].toString());
+		query.exec(sql);
 #if _DEBUG
 		qDebug() << "用户创建";
 		qDebug() << query.lastQuery();

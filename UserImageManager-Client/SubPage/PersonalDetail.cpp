@@ -105,7 +105,7 @@ void PersonalDetail::init()
 
 void PersonalDetail::onLoadPersonalInfo()
 {
-	SHttpClient(URL("/api/user/")).debug(true)
+	SHttpClient(URL("/api/user/queryUser")).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 		.param("user_id", sApp->userData("user/user_id").toString()) //query参数
 		.fail([=](const QString& msg, int code) {

@@ -26,6 +26,10 @@ public:
 	void showUserEditDlg(const QModelIndex& index);
 protected:
 	void resizeEvent(QResizeEvent* event)override;
+signals:
+	void pageChanged(int pageId);
+	void totalRecordsCountChanged(int totalCounts);
+	void totalPagesCountChanged(int totalPages);
 public slots:
 	void onSearch();
 	void onBatchEnable();
@@ -33,6 +37,7 @@ public slots:
 	void onBatchDelete();
 private:
 	void parseJson(const QJsonObject& obj);
+	void checkPageValidity();
 private:
 
 	int column(const QString& field);
@@ -59,6 +64,12 @@ private:
 	QPushButton* m_batchDeleteBtn{};
 
 	QTableView* m_tableView{};
+
+	//分页
+	int m_currentPage = 1;
+	int m_pageSize = 20;
+	int m_lastPage{};
+	int m_totalCount{};
 };
 
 #endif //!  USERMANAGERPAGE_H_
