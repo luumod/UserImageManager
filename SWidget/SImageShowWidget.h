@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QTextEdit>
+#include <QPaintEvent>
 
 class RoundedImageWidget;
 class SImageShowWidget : public QWidget
@@ -16,14 +17,16 @@ public:
 	void init();
 	void loadImage(const QString& path, const QString& name, const QString& desc);
 
+	inline RoundedImageWidget* getImageShowWidget()const { return m_wid_labImage; }
+protected:
 	void paintEvent(QPaintEvent* event)override;
 
-	RoundedImageWidget* m_wid_labImage{};
 private:
+	RoundedImageWidget* m_wid_labImage{};
 
 
 	QLabel* m_lab_imageName{};
-	QTextEdit* m_area_textArea{};
+	QLabel* m_area_textArea{};
 
 	QString m_imagePath;
 	QString m_imageName;

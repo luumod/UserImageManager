@@ -5,31 +5,30 @@
 #include <QWidget>
 #include <QPixmap>
 
+class QLabel;
 class RoundedImageWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	RoundedImageWidget(int id, const QPixmap& pixmap, QWidget* parent = nullptr);
+	RoundedImageWidget(int id, const QString& filePath, QWidget* parent = nullptr);
 	RoundedImageWidget(int id, QWidget* parent = nullptr);
 	RoundedImageWidget(QWidget* parent = nullptr);
 	~RoundedImageWidget();
+
+	void init();
 	void setStyle();
-	void setPixmap(const QString& path);
-	inline int imageWidth() {return m_pixmap.width(); }
-	inline int imageHeight() {return m_pixmap.height(); }
 	bool isNull()const;
+	void setImagePath(const QString& filePath);
 signals:
 	void clickedImage(int id);
 protected:
 	void mouseMoveEvent(QMouseEvent* event)override;
 	void mousePressEvent(QMouseEvent* event)override;
-	void paintEvent(QPaintEvent* event)override;
-
 
 private:
-	QPixmap m_pixmap;
-
+	QLabel* m_pixmapLab{};
+	QString m_filePath{};
 	int m_id{};
 };
 

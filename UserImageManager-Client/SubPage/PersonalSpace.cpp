@@ -1,6 +1,4 @@
 ﻿#include "PersonalSpace.h"
-#include "PersonalSpace.h"
-#include "PersonalSpace.h"
 #include "SHttpClient.h"
 #include "SApp.h"
 #include "RoundedImageWidget.h"
@@ -29,12 +27,18 @@ void PersonalSpace::init()
 	main_layout = new QVBoxLayout;
 	this->setLayout(main_layout);
 
-	images_layout = new QGridLayout; //显示3*2的图片
-	//images_layout->widget()->setStyleSheet("background-color:#E0DDEB;");
-	main_layout->addLayout(images_layout);
+	images_layout_1 = new QHBoxLayout; 
+	images_layout_2 = new QHBoxLayout;
+	images_layout_3 = new QHBoxLayout;
+
+	main_layout->addLayout(images_layout_1,2);
+	main_layout->addLayout(images_layout_2,2);
+	main_layout->addLayout(images_layout_3,2);
 
 	auto preBtn = new  QPushButton;
 	auto nextBtn = new  QPushButton;
+	preBtn->setFixedHeight(30);
+	nextBtn->setFixedHeight(30);
 	preBtn->setIcon(QIcon(":/ResourceClient/pre.png"));
 	nextBtn->setIcon(QIcon(":/ResourceClient/next.png"));
 	connect(preBtn, &QPushButton::clicked, this, &PersonalSpace::onChangePrePage);
@@ -44,7 +48,7 @@ void PersonalSpace::init()
 	changeLayout->addWidget(preBtn);
 	changeLayout->addWidget(nextBtn);
 	changeLayout->addStretch();
-	main_layout->addLayout(changeLayout);
+	main_layout->addLayout(changeLayout,1);
 
 	onSearch(); 
 }
@@ -149,13 +153,19 @@ void PersonalSpace::initParase(const QJsonObject& obj) //只初始化一次
 	m_images.resize(6); //固定每页6张图片 3*2显示，换页则重新加载6张图片
 	for (int j = 0; j < m_images.size(); j++) {
 		m_images[j] = new SImageShowWidget(j); //预初始化 ,传入id，用于记录图片所处的位置
-		connect(m_images[j]->m_wid_labImage, &RoundedImageWidget::clickedImage, this, &PersonalSpace::onClickedOneImage);
+		connect(m_images[j]->getImageShowWidget(), &RoundedImageWidget::clickedImage, this, &PersonalSpace::onClickedOneImage);
 	}
-	for (int i = 0; i < m_images.size(); i++) { //0-5
-		images_layout->addWidget(m_images[i], i / 2, i % 2);
-	}
-	images_layout->setContentsMargins(0, 0, 0, 0);
-	images_layout->setSpacing(1);
+	images_layout_1->addWidget(m_images[0]);
+	images_layout_1->addSpacing(10);
+	images_layout_1->addWidget(m_images[1]);
+
+	images_layout_2->addWidget(m_images[2]);
+	images_layout_2->addSpacing(10);
+	images_layout_2->addWidget(m_images[3]);
+
+	images_layout_3->addWidget(m_images[4]);
+	images_layout_3->addSpacing(10);
+	images_layout_3->addWidget(m_images[5]);
 
 	auto jArray = obj["data"]["images"].toArray();
 	loadImage(jArray);

@@ -10,6 +10,7 @@ class SImageShowWidget;
 class QGridLayout;
 class QVBoxLayout;
 class SImageDetailDlg;
+class QHBoxLayout;
 class PersonalSpace : public QWidget
 {
 	Q_OBJECT
@@ -36,7 +37,10 @@ private:
 	QList<SImageShowWidget*> m_images;
 
 	QVBoxLayout* main_layout{};
-	QGridLayout* images_layout{};
+	//QGridLayout* images_layout{};
+	QHBoxLayout* images_layout_1{};
+	QHBoxLayout* images_layout_2{};
+	QHBoxLayout* images_layout_3{};
 
 	int m_firstImageIndex = 0;
 	int m_lastImageIndex = 5;

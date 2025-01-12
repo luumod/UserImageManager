@@ -2,17 +2,21 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QMouseEvent>
+#include <QBoxLayout>
+#include <QLabel>
 
-RoundedImageWidget::RoundedImageWidget(int id,const QPixmap& pixmap, QWidget* parent)
+RoundedImageWidget::RoundedImageWidget(int id, const QString& filePath, QWidget* parent)
 	: QWidget(parent)
 	, m_id(id)
-	, m_pixmap(pixmap)
+	, m_filePath(filePath)
 {
+	init();
+	setImagePath(filePath);
 	setMouseTracking(true);
 }
 
 RoundedImageWidget::RoundedImageWidget(int id, QWidget* parent)
-	:RoundedImageWidget(id, QPixmap(QString()), parent) {
+	:RoundedImageWidget(id, QString(), parent) {
 }
 
 RoundedImageWidget::RoundedImageWidget(QWidget* parent)
@@ -24,19 +28,37 @@ RoundedImageWidget::~RoundedImageWidget()
 {	
 }
 
+void RoundedImageWidget::init()
+{
+	auto mainLayout = new QVBoxLayout;
+
+	
+	m_pixmapLab = new QLabel;
+	m_pixmapLab->setMargin(0);
+	m_pixmapLab->setFixedSize(250, 170);
+	QPainterPath path;
+	path.addRoundedRect(m_pixmapLab->rect(), 30, 30);
+	m_pixmapLab->setMask(QRegion(path.toFillPolygon().toPolygon()));
+	m_pixmapLab->setScaledContents(true);
+
+	mainLayout->addWidget(m_pixmapLab);
+
+	this->setLayout(mainLayout);
+}
+
 void RoundedImageWidget::setStyle()
 {
 }
 
-void RoundedImageWidget::setPixmap(const QString& path)
-{
-	m_pixmap = QPixmap(path);
-	update();
-}
-
 bool RoundedImageWidget::isNull() const
 {
-	return m_pixmap.isNull();
+	return m_filePath.isNull();
+}
+
+void RoundedImageWidget::setImagePath(const QString& filePath)
+{
+	m_filePath = filePath;
+	m_pixmapLab->setPixmap(QPixmap(m_filePath));
 }
 
 void RoundedImageWidget::mouseMoveEvent(QMouseEvent* event)
@@ -50,22 +72,7 @@ void RoundedImageWidget::mouseMoveEvent(QMouseEvent* event)
 void RoundedImageWidget::mousePressEvent(QMouseEvent* event)
 {
 	//鼠标左键点击事件
-	
 	if (event->button() == Qt::LeftButton) {
 		emit clickedImage(m_id);
 	}
-}
-
-void RoundedImageWidget::paintEvent(QPaintEvent* event)
-{
-	QPainter painter(this);
-	QPainterPath path;
-	path.addRoundedRect(rect(), 20,20);
-	painter.setClipPath(path);
-	if (!m_pixmap.isNull()) {
-		painter.drawPixmap(rect(), m_pixmap);
-	}/*
-	else {
-		painter.drawText(rect(), Qt::AlignCenter, "No Image");
-	}*/
 }
