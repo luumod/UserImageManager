@@ -93,7 +93,9 @@ QWidget* LoginRegister::createLoginWidget()
 	m_password = new QLineEdit;
 	m_password->setPlaceholderText("密码");
 	m_password->setEchoMode(QLineEdit::Password);
-	m_password->setText(config->value("user/password").toString());
+	if (config->value("user/remember_pwd").toBool()) {
+		m_password->setText(config->value("user/password").toString());
+	}
 
 	m_rememberPwd = new QCheckBox("记住密码");
 	m_rememberPwd->setChecked(config->value("user/remember_pwd").toBool());
