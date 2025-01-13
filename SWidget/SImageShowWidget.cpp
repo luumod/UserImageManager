@@ -11,7 +11,8 @@ SImageShowWidget::SImageShowWidget(int id,const QString& path, const QString& na
 	, m_imageName(name)
 	, m_imageDesc(desc)
 {
-	this->setFixedSize(750, 200);
+	//this->setFixedSize(750, 200);
+	this->setMaximumSize(750, 250);
 	init(); 
 	setMouseTracking(true);
 	//为此窗口的边缘添加阴影

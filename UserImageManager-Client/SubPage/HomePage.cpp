@@ -25,6 +25,10 @@ HomePage::HomePage(QWidget *parent)
 	this->setContentsMargins(0, 0, 0, 0);
 	init();
 
+	this->setStyleSheet(" QLineEdit{border: 1px solid #DEDEDE; border-radius: 5px; padding: 5px; background-color: transparent;  font-size: 15px; color: #333333;} \
+                           QComboBox{border: 2px solid #D4DBC7; border-radius: 5px; padding: 5px; background-color: transparent;  font-size: 15px; color: #333333;}  \
+                            QTextEdit{border: 1px solid #DEDEDE; border-radius: 5px; padding: 5px; background-color: transparent; font-size: 15px; color: #333333;} \
+		QLabel{font-size: 15px; font-weight: bold; color: #333333; font-family: \"Microsoft YaHei\";} ");
 }
 
 HomePage::~HomePage()
@@ -39,10 +43,6 @@ void HomePage::init()
 	//------------------top-------------------
 	QHBoxLayout* topLayout = new QHBoxLayout;
 
-	this->setStyleSheet(" QLineEdit{border: 1px solid #DEDEDE; border-radius: 5px; padding: 5px; background-color: transparent; width: 300px; height: 50px; font-size: 15px; color: #333333;} \
-                           QComboBox{border: 2px solid #D4DBC7; border-radius: 5px; padding: 5px; background-color: transparent; width: 300px; height: 50px; font-size: 15px; color: #333333;}  \
-                            QTextEdit{border: 1px solid #DEDEDE; border-radius: 5px; padding: 5px; background-color: transparent; font-size: 15px; color: #333333;} \
-		QLabel{font-size: 15px; font-weight: bold; color: #333333; font-family: \"Microsoft YaHei\";} ");
 	auto formLayout_path = new QHBoxLayout;
 	auto titleLab = new QLabel("图片路径：");
 	m_titleAbsPath = new QLineEdit;

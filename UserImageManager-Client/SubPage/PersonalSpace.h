@@ -9,7 +9,7 @@ class QStackedWidget;
 class SImageShowWidget;
 class QGridLayout;
 class QVBoxLayout;
-class SImageDetailDlg;
+class ImageDetailPage;
 class QHBoxLayout;
 class PersonalSpace : public QWidget
 {
@@ -47,7 +47,7 @@ private:
 	int m_currentPage = 0;  //默认第0页 
 	QMap<int, ImageInfo> m_imagesInfoMap;
 
-	SImageDetailDlg* m_imageDetailDlg{};
+	ImageDetailPage* m_imageDetailPage{};
 };
 
 #endif // PERSONALSPACE_H

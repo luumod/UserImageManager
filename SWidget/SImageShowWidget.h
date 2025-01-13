@@ -18,6 +18,7 @@ public:
 	void loadImage(const QString& path, const QString& name, const QString& desc);
 
 	inline RoundedImageWidget* getImageShowWidget()const { return m_wid_labImage; }
+	inline int getId()const { return m_id; }
 protected:
 	void paintEvent(QPaintEvent* event)override;
 

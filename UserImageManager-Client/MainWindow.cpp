@@ -14,7 +14,8 @@ MainWindow::MainWindow(QWidget* parent)
 	:QWidget(parent)
 {
 	//this->setMinimumSize(1700,900);
-	this->resize(1700,900);
+	this->setFixedSize(1700,900);
+	move(50, 50);
 	init();
 
 	SMaskWidget::instance()->setMainWindow(this);
@@ -53,7 +54,8 @@ QWidget* MainWindow::initConetentArea()
 	m_stkWidget->addWidget(m_personalDetailPage); //个人中心
 	m_stkWidget->setContentsMargins(0, 0, 0, 0);
 
-	m_treeNavBar->setMaximumWidth(this->width() / 5);
+	//m_treeNavBar->setMaximumWidth(this->width() / 5);
+	m_treeNavBar->setFixedWidth(220);
 
 	m_treeNavBar->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 	QTreeWidgetItem* item = nullptr;

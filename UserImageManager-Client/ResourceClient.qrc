@@ -10,5 +10,6 @@
         <file>ResourceClient/pre.png</file>
         <file>ResourceClient/create.png</file>
         <file>ResourceClient/open.png</file>
+        <file>ResourceClient/back.png</file>
     </qresource>
 </RCC>

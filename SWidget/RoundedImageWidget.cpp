@@ -35,7 +35,7 @@ void RoundedImageWidget::init()
 	
 	m_pixmapLab = new QLabel;
 	m_pixmapLab->setMargin(0);
-	m_pixmapLab->setFixedSize(250, 170);
+	m_pixmapLab->setFixedSize(250, 220);
 	QPainterPath path;
 	path.addRoundedRect(m_pixmapLab->rect(), 30, 30);
 	m_pixmapLab->setMask(QRegion(path.toFillPolygon().toPolygon()));

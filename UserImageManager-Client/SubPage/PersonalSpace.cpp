@@ -3,7 +3,7 @@
 #include "SApp.h"
 #include "RoundedImageWidget.h"
 #include "SImageShowWidget.h"
-#include "SImageDetail.h"
+#include "ImageDetailPage.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QStackedWidget>
@@ -55,8 +55,8 @@ void PersonalSpace::init()
 
 void PersonalSpace::resizeEvent(QResizeEvent* e)
 {
-	if (m_imageDetailDlg) {
-		m_imageDetailDlg->resize(this->size());
+	if (m_imageDetailPage) {
+		m_imageDetailPage->resize(this->size());
 	}
 }
 
@@ -83,45 +83,22 @@ void PersonalSpace::onChangeNextPage()
 }
 
 void PersonalSpace::onClickedOneImage(int id) {
-	if (!m_imageDetailDlg) {
-		m_imageDetailDlg = new SImageDetailDlg(
-			 this); //图片id
+	if (id < 0) {
+		id = m_images.size() - 1;
 	}
-	auto image_real_index = m_currentPage * m_images.size() + id;;
-	m_imageDetailDlg->setData(m_imagesInfoMap[image_real_index]);
-	/*m_imageDetailDlg->setData(ImageInfo(
-		m_imagesInfoMap[image_real_index].m_id,
-		m_imagesInfoMap[image_real_index].m_owner_id,
-		m_imagesInfoMap[image_real_index].m_path,
-		m_imagesInfoMap[image_real_index].m_name,
-		m_imagesInfoMap[image_real_index].m_size,
-		m_imagesInfoMap[image_real_index].m_format,
-		m_imagesInfoMap[image_real_index].m_share,
-		m_imagesInfoMap[image_real_index].m_type,
-		m_imagesInfoMap[image_real_index].m_download,
-		m_imagesInfoMap[image_real_index].m_ResolutionRatio,
-		m_imagesInfoMap[image_real_index].m_quality,
-		m_imagesInfoMap[image_real_index].m_upload_time,
-		m_imagesInfoMap[image_real_index].m_desc));
-		ImageInfo(image["image_id"].toInt()
-				, image["owner_id"].toInt()
-				, image["image_path"].toString()
-				, image["image_name"].toString()
-				, image["image_size"].toInt()
-				, image["image_format"].toString()
-				, image["image_share"].toInt()
-				, image["image_type"].toString()
-				, image["image_download"].toInt()
-				, image["image_ResolutionRatio"].toString()
-				, image["image_quality"].toString()
-				, image["upload_time"].toString()
-				, image["description"].toString())
-	*/
-	m_imageDetailDlg->resize(this->size());
-	m_imageDetailDlg->show();
+	else if (id >= m_images.size()) {
+		id = 0;
+	}
+	if (!m_imageDetailPage) {
+		m_imageDetailPage = new ImageDetailPage(this);
+		connect(m_imageDetailPage, &ImageDetailPage::nextImage, this, &PersonalSpace::onClickedOneImage);
+		connect(m_imageDetailPage, &ImageDetailPage::prevImage, this, &PersonalSpace::onClickedOneImage);
+	}
+	auto image_real_index = m_currentPage * m_images.size() + id;
+	m_imageDetailPage->setData(m_imagesInfoMap[image_real_index], image_real_index);
+	m_imageDetailPage->resize(this->size());
+	m_imageDetailPage->show();
 }
-
-
 
 void PersonalSpace::onSearch()
 {
