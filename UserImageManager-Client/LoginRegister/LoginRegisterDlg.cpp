@@ -88,7 +88,7 @@ QWidget* LoginRegister::createLoginWidget()
 	QWidget* w = new QWidget;
 	m_account = new QLineEdit;
 	m_account->setPlaceholderText("账号/手机号/邮箱");
-	m_account->setText(config->value("user/user_id").toString());
+	m_account->setText(config->value("user/user_account").toString());
 
 	m_password = new QLineEdit;
 	m_password->setPlaceholderText("密码");
@@ -259,7 +259,7 @@ void LoginRegister::onLogin() {
 
 	SHttpClient(URL("/api/login"))
 		.debug(true)
-		.json(QJsonObject{ {"user_id",acc},{"password",pwd} }) // 发送json数据
+		.json(QJsonObject{ {"user_account",acc},{"password",pwd} }) // 发送json数据
 		.fail([=](const QString& msg, int code)
 			{
 				if (code == QNetworkReply::ConnectionRefusedError) {
@@ -280,7 +280,8 @@ void LoginRegister::onLogin() {
 					if (jdom["code"].toInt() < 1000) { //jdom.object().value("code").tointeger()
 						auto token = jdom["data"]["token"].toString();
 						sApp->setUserData("user/token", token); 
-						sApp->setUserData("user/user_id",jdom["data"]["user_id"].toString());
+						sApp->setUserData("user/id", jdom["data"]["id"].toString());
+						sApp->setUserData("user/user_account",jdom["data"]["user_account"].toString());
 						sApp->setUserData("user/user_name", jdom["data"]["user_name"].toString());
 						sApp->setUserData("user/gender", jdom["data"]["gender"].toInt());
 						sApp->setUserData("user/password", jdom["data"]["password"].toString());
@@ -294,7 +295,7 @@ void LoginRegister::onLogin() {
 						
 						//登陆成功后，保存信息
 						auto config = sApp->globalConfig();
-						config->setValue("user/user_id",jdom["data"]["user_id"].toString());
+						config->setValue("user/user_account",jdom["data"]["user_account"].toString());
 						config->setValue("user/password", jdom["data"]["password"].toString());
 						config->setValue("user/remember_pwd", isRememPwd);
 						config->setValue("user/auto_login", m_autoLogin->isChecked());
@@ -346,7 +347,7 @@ void LoginRegister::onRegister(){
 
 	SHttpClient(URL("/api/register"))
 		.debug(true)
-		.json(QJsonObject{ {"user_id",acc},{"password",pwd},{"user_name",uname}, { "gender",gender } }) // json body数据
+		.json(QJsonObject{ {"user_account",acc},{"password",pwd},{"user_name",uname}, { "gender",gender } }) // json body数据
 		.fail([=](const QString& msg, int code) {
 #ifdef _DEBUG
 			qDebug() << msg << code;

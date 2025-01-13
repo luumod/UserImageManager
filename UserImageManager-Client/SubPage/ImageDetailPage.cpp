@@ -11,6 +11,7 @@ ImageDetailPage::ImageDetailPage(QWidget* parent)
 		QPushButton#backBtn, QPushButton#prevBtn, QPushButton#nextBtn {background-color: #FFFFFF; border: 1px solid #000000; border-radius: 5px; color: #000000; font-size: 16px; padding: 5px 10px;}\
         QPushButton#backBtn:hover, QPushButton#prevBtn:hover, QPushButton#nextBtn:hover {background-color: #000000; color: #FFFFFF;} \
 		 ");
+	
 }
 
 ImageDetailPage::~ImageDetailPage()
@@ -61,17 +62,23 @@ void ImageDetailPage::init()
 		this->close();
 		});
 	connect(nextBtn, &QPushButton::clicked, this, [=]() {
-		m_currentImageIndex++;
-		emit nextImage(m_currentImageIndex);
+		m_imageDetailDlg->nextImage();
+		emit nextImage(m_imageDetailDlg->currentImageIndex());
 		});
 	connect(prevBtn, &QPushButton::clicked, this, [=]() {
-		m_currentImageIndex--;
-		emit prevImage(m_currentImageIndex);
+		m_imageDetailDlg->prevImage();
+		emit prevImage(m_imageDetailDlg->currentImageIndex());
+		});
+
+	connect(m_imageDetailDlg, &SImageDetailDlg::imageLiked, this, [=](int image_index) {
+		emit imageLiked(image_index);
+	});
+	connect(m_imageDetailDlg, &SImageDetailDlg::imageUnLiked, this, [=](int image_index) {
+		emit imageUnLiked(image_index);
 		});
 }
 
 void ImageDetailPage::setData(ImageInfo info,int image_index)
 {
-	m_currentImageIndex = image_index; //[0-5]
-	m_imageDetailDlg->setData(info);
+	m_imageDetailDlg->setData(info, image_index);
 }

@@ -101,7 +101,7 @@ void UserDetailsDlg::init()
 
 	connect(m_isEnable_btn, &SSwitchButton::stateChanged, [=](bool state)
 		{
-			SHttpClient(URL("/api/user/alter?user_id=" + m_juser.value("user_id").toString())).debug(true)
+			SHttpClient(URL("/api/user/alter?user_account=" + m_juser.value("user_account").toString())).debug(true)
 				.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 				.json({ {"isEnable",state} })
 				.fail([=](const QString& msg, int code) {
@@ -140,7 +140,7 @@ void UserDetailsDlg::onAvatarDownload()
 {
 	SHttpClient(URL("/api/user/avatar")).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-		.param("user_id", m_juser.value("user_id").toString()) //query参数
+		.param("user_account", m_juser.value("user_account").toString()) //query参数
 		.fail([=](const QString& msg, int code) {
 			//默认头像
 			m_avatar_lab->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
@@ -188,7 +188,7 @@ void UserDetailsDlg::onAvatarUpload()
 		return;
 	}
 
-	auto url = URL("/api/user/avatar?user_id=" + m_juser.value("user_id").toString());
+	auto url = URL("/api/user/avatar?user_account=" + m_juser.value("user_account").toString());
 
 	QNetworkAccessManager* mangaer = new QNetworkAccessManager(this);
 	QNetworkRequest request(url);
@@ -222,7 +222,7 @@ void UserDetailsDlg::onAvatarUpload()
 
 void UserDetailsDlg::updateUi()
 {
-	m_inputItem_id->setValue(m_juser.value("user_id").toString());
+	m_inputItem_id->setValue(m_juser.value("user_account").toString());
 	m_inputItem_name->setValue(m_juser.value("user_name").toString());
 	m_isEnable_btn->setToggle(m_juser.value("isEnable").toBool());
 	m_inputItem_email->setValue(m_juser.value("email").toString());

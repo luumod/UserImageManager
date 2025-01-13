@@ -17,8 +17,9 @@ public:
 signals:
 	void nextImage(int nextIndex);
 	void prevImage(int prevIndex);
-private:
-	int m_currentImageIndex{};
+	void imageLiked(int image_index);
+	void imageUnLiked(int image_index);
+public:
 	SImageDetailDlg* m_imageDetailDlg{};
 };
 

@@ -107,7 +107,7 @@ void PersonalDetail::onLoadPersonalInfo()
 {
 	SHttpClient(URL("/api/user/queryUser")).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-		.param("user_id", sApp->userData("user/user_id").toString()) //query参数
+		.param("user_account", sApp->userData("user/user_account").toString()) //query参数
 		.fail([=](const QString& msg, int code) {
 		//默认头像
 		m_avatar_lab->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
@@ -138,7 +138,7 @@ void PersonalDetail::onAvatarDownload()
 {
 	SHttpClient(URL("/api/user/avatar")).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-		.param("user_id", sApp->userData("user/user_id").toString()) //query参数
+		.param("user_account", sApp->userData("user/user_account").toString()) //query参数
 		.fail([=](const QString& msg, int code) {
 			//默认头像
 			m_avatar_lab->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
@@ -186,7 +186,7 @@ void PersonalDetail::onAvatarUpload()
 		return;
 	}
 
-	auto url = URL("/api/user/avatar?user_id=" + sApp->userData("user/user_id").toString());
+	auto url = URL("/api/user/avatar?user_account=" + sApp->userData("user/user_account").toString());
 
 	QNetworkAccessManager* mangaer = new QNetworkAccessManager(this);
 	QNetworkRequest request(url);
@@ -222,7 +222,7 @@ void PersonalDetail::onAvatarUpload()
 void PersonalDetail::updateUser()
 {
 	onAvatarDownload();
-	m_inputItem_id->setValue(sApp->userData("user/user_id").toString());
+	m_inputItem_id->setValue(sApp->userData("user/user_account").toString());
 	m_inputItem_name->setValue(sApp->userData("user/user_name").toString());
 	m_inputItem_email->setValue(sApp->userData("user/email").toString());
 	m_inputItem_mobile->setValue(sApp->userData("user/mobile").toString());

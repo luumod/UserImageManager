@@ -20,7 +20,7 @@ void UserAddDlg::init()
 	setStyleSheet("background-color: white;");
 	setAttribute(Qt::WA_StyledBackground);
 
-	m_user_id_edit = new QLineEdit;
+	m_user_account_edit = new QLineEdit;
 	m_username_edit = new QLineEdit;
 	m_mobile_edit = new QLineEdit;
 	m_email_edit = new QLineEdit;
@@ -35,7 +35,7 @@ void UserAddDlg::init()
 	//flayout->setContentsMargins(0, 0, 0, 0);
 	//flayout->setSpacing(6);
 
-	flayout->addRow("<font color=red>*</font>用户ID", m_user_id_edit);
+	flayout->addRow("<font color=red>*</font>用户ID", m_user_account_edit);
 	flayout->addRow("<font size=2 face='宋体' color='gray'>最大长度64位，允许英文字母、数字</font>", new QLabel);
 
 	flayout->addRow("<font color=red>*</font>用户名", m_username_edit);
@@ -69,9 +69,9 @@ void UserAddDlg::init()
 		mlayout->addLayout(bhlayout);
 
 		connect(okBtn, &QPushButton::clicked, this, [=]() {
-			auto user_id = m_user_id_edit->text();
+			auto user_account = m_user_account_edit->text();
 
-			m_juser.insert("user_id", user_id);
+			m_juser.insert("user_account", user_account);
 			m_juser.insert("user_name", m_username_edit->text());
 			m_juser.insert("mobile", m_mobile_edit->text());
 			m_juser.insert("email", m_email_edit->text());
@@ -93,7 +93,7 @@ void UserAddDlg::init()
 					//为了查询到用户的id
 					SHttpClient(URL("/api/user/queryUser")).debug(true)
 						.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
-						.param("user_id", user_id) //查询user_id的用户信息
+						.param("user_account", user_account) //查询user_account的用户信息
 						.fail([=](const QString& msg, int code) {
 							})
 						.success([=](const QByteArray& data)
@@ -128,16 +128,16 @@ void UserAddDlg::init()
 	m_password_edit->hide();
 	connect(m_custom_password_rbtn, &QRadioButton::toggled, m_password_edit, &QLineEdit::setVisible);
 
-	m_user_id_edit->setText(QDateTime::currentDateTime().toString("yyMMddhhmmsszz"));
+	m_user_account_edit->setText(QDateTime::currentDateTime().toString("yyMMddhhmmsszz"));
 }
 
 void UserAddDlg::setUser(const QJsonObject& user)
 {
 	m_juser = user;
 	//m_backBtn->setText(m_juser.value("user_name").toString());
-	//m_user_id_lab->setText(m_juser.value("user_id").toString());
+	//m_user_account_lab->setText(m_juser.value("user_account").toString());
 	//m_username_lab->setText(m_juser.value("user_name").toString());
-	////m_isEnable_btn->setText(m_juser.value("user_id").toString());
+	////m_isEnable_btn->setText(m_juser.value("user_account").toString());
 	//m_isEnable_btn->setToggle(m_juser.value("isEnable").toBool());
 	//m_mobile_lab->setText(m_juser.value("mobile").toString());
 	//m_email_lab->setText(m_juser.value("email").toString());

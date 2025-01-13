@@ -42,7 +42,7 @@ private:
 
 	int column(const QString& field);
 	QList<QStandardItem*> createItems(const QJsonObject& obj);
-	QStringList m_fieldName = { "","id","user_id","user_name","gender","mobile","email","isEnable","operation" };
+	QStringList m_fieldName = { "","id","user_account","user_name","gender","mobile","email","isEnable","operation" };
 	QStandardItemModel* m_model{};
 	QModelIndex m_currentIndex;
 

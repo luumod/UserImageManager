@@ -4,7 +4,7 @@
 class ImageInfo {
 public:
 	int m_id{};
-	int m_owner_id{};
+	int m_owner_id{}; //user_account
 
 	QString m_path{}; //absolute path
 	QString m_name{};
@@ -17,9 +17,12 @@ public:
 	QString m_quality{};
 	QString m_upload_time{};
 	QString m_desc{};
+
+	int m_likeCount{};//点赞数
+
 	ImageInfo(){}
-	ImageInfo(int id, int owner_id, const QString& path, const QString& name, int size, const QString& format, int share, const QString& type, int download, const QString& resolutionRatio, const QString& quality, const QString& upload_time, const QString& desc)
-		: m_id(id), m_owner_id(owner_id), m_path(path), m_name(name), m_size(size), m_format(format), m_share(share), m_type(type), m_download(download), m_ResolutionRatio(resolutionRatio), m_quality(quality), m_upload_time(upload_time), m_desc(desc) {
+	ImageInfo(int id, int owner_id, const QString& path, const QString& name, int size, const QString& format, int share, const QString& type, int download, const QString& resolutionRatio, const QString& quality, const QString& upload_time, const QString& desc, int likeCount)
+		: m_id(id), m_owner_id(owner_id), m_path(path), m_name(name), m_size(size), m_format(format), m_share(share), m_type(type), m_download(download), m_ResolutionRatio(resolutionRatio), m_quality(quality), m_upload_time(upload_time), m_desc(desc), m_likeCount(likeCount) {
 	}
 	inline void set_image_id(int id) { m_id = id; }
 	inline void set_image_owner_id(int owner_id) { m_owner_id = owner_id; }
@@ -34,6 +37,7 @@ public:
 	inline void set_image_quality(const QString& quality) { m_quality = quality; }
 	inline void set_image_upload_time(const QString& upload_time) { m_upload_time = upload_time; }
 	inline void set_image_desc(const QString& desc) { m_desc = desc; }
+	inline void set_image_likeCount(int likeCount) { m_likeCount = likeCount; }
 };
 
 #endif

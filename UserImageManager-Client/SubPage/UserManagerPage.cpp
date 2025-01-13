@@ -42,7 +42,7 @@ void UserManagerPage::init()
 {
 	SFieldTranslate::instance()->addTrans("user/", "");
 	SFieldTranslate::instance()->addTrans("user/id", "用户编号");
-	SFieldTranslate::instance()->addTrans("user/user_id", "账号");
+	SFieldTranslate::instance()->addTrans("user/user_account", "账号");
 	SFieldTranslate::instance()->addTrans("user/user_name", "用户昵称");
 	SFieldTranslate::instance()->addTrans("user/gender", "性别");
 	SFieldTranslate::instance()->addTrans("user/email", "邮箱");
@@ -312,9 +312,9 @@ void UserManagerPage::init()
 		}
 	});
 
-	//url代理: user_id
+	//url代理: user_account
 	auto urlDelegate = new SUrlDelegate(m_tableView);
-	m_tableView->setItemDelegateForColumn(column("user_id"), urlDelegate);
+	m_tableView->setItemDelegateForColumn(column("user_account"), urlDelegate);
 	connect(urlDelegate, &SUrlDelegate::requestOpenUrl, this, &UserManagerPage::showUserDetails);
 
 	//开关代理: isEnable
@@ -322,9 +322,9 @@ void UserManagerPage::init()
 	m_tableView->setItemDelegateForColumn(column("isEnable"), switchDelegate);
 	connect(switchDelegate, &SSwitchDelegate::stateChanged, [=](int state,const QModelIndex& index) {
 
-		auto user_id = m_model->item(index.row(), column("user_id"))->text();
+		auto user_account = m_model->item(index.row(), column("user_account"))->text();
 		auto isEnable = !!m_model->data(index, Qt::UserRole).toInt();
-		SHttpClient(URL("/api/user/alter?user_id=" + user_id)).debug(true)
+		SHttpClient(URL("/api/user/alter?user_account=" + user_account)).debug(true)
 			.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 			.json({ {"isEnable",isEnable} }) // json body数据
 			.fail([=](const QString& error, int code) {
@@ -345,7 +345,7 @@ void UserManagerPage::init()
 				}
 				else {
 #ifdef _DEBUG
-					qInfo() << "禁用用户失败，用户id：" << user_id;
+					qInfo() << "禁用用户失败，用户id：" << user_account;
 #endif
 				}
 			})
@@ -379,9 +379,9 @@ void UserManagerPage::init()
 			showUserEditDlg(index);
 		}
 		else if (id == 2) { //删除
-			auto user_id = m_model->item(index.row(), column("user_id"))->text(); 
+			auto user_account = m_model->item(index.row(), column("user_account"))->text(); 
 			QJsonArray jArray;
-			jArray.append(user_id); //list
+			jArray.append(user_account); //list
 			SHttpClient(URL("/api/user/delete")).debug(true)
 				.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 				.json({ {"lists",jArray} })
@@ -422,11 +422,11 @@ void UserManagerPage::setBatchEnabeld(bool enable)
 		auto item = m_model->item(i);
 		if (item && item->data(Qt::UserRole).toBool()) { //(i,0)的复选框被选中
 			auto isEnable = !!m_model->item(i, column("isEnable"))->data(Qt::UserRole).toInt(); //将值转为bool
-			auto user_id = m_model->item(i, column("user_id"))->text(); //获取user_id这一列的值
+			auto user_account = m_model->item(i, column("user_account"))->text(); //获取user_account这一列的值
 			if ( isEnable != enable) { //true -> false  false -> true
-				st.insert(user_id);
+				st.insert(user_account);
 				QJsonObject recObj; 
-				QJsonObject filterObj{ {"user_id",user_id} };
+				QJsonObject filterObj{ {"user_account",user_account} };
 				QJsonObject updateObj{ {"isEnable",enable} };
 				recObj.insert("filter", filterObj);
 				recObj.insert("update", updateObj);
@@ -443,7 +443,7 @@ void UserManagerPage::setBatchEnabeld(bool enable)
 		lists:[
 			{
 				filter:{
-					"user_id": 123456
+					"user_account": 123456
 				}
 				update:{
 					"isEnable": true
@@ -451,7 +451,7 @@ void UserManagerPage::setBatchEnabeld(bool enable)
 			},
 			{
 				filter:{
-					"user_id": 555666
+					"user_account": 555666
 				}
 				update:{
 					"isEnable": false
@@ -508,7 +508,7 @@ void UserManagerPage::showUserDetails(const QModelIndex& index)
 
 	m_currentIndex = index; //保存当前详细信息的行索引
 	QJsonObject jUser;
-	jUser.insert("user_id", m_model->item(index.row(), column("user_id"))->text());
+	jUser.insert("user_account", m_model->item(index.row(), column("user_account"))->text());
 	jUser.insert("user_name", m_model->item(index.row(), column("user_name"))->text());
 	jUser.insert("gender", m_model->item(index.row(), column("gender"))->text()=="男" ? 1 : (m_model->item(index.row(), column("gender"))->text()=="女" ? 2 : 0));
 	jUser.insert("email", m_model->item(index.row(), column("email"))->text());
@@ -537,7 +537,7 @@ void UserManagerPage::showUserEditDlg(const QModelIndex& index)
 
 	m_currentIndex = index; //保存当前修改的行索引
 	QJsonObject jUser;
-	jUser.insert("user_id", m_model->item(index.row(), column("user_id"))->text());
+	jUser.insert("user_account", m_model->item(index.row(), column("user_account"))->text());
 	jUser.insert("user_name", m_model->item(index.row(), column("user_name"))->text());
 	jUser.insert("email", m_model->item(index.row(), column("email"))->text());
 	jUser.insert("mobile", m_model->item(index.row(), column("mobile"))->text());
@@ -572,7 +572,7 @@ void UserManagerPage::onBatchDelete()
 	for (int i = 0; i < m_model->rowCount(); i++) {
 		auto item = m_model->item(i);
 		if (item && item->data(Qt::UserRole).toBool()) { //复选框被选中
-			jArray.append(m_model->item(i,column("user_id"))->text()); //user_id
+			jArray.append(m_model->item(i,column("user_account"))->text()); //user_account
 			deleteRows.insert(i);
 		}
 	}
@@ -617,7 +617,7 @@ void UserManagerPage::onSearch()
 	params.insert("page", m_currentPage);
 	params.insert("pageSize", m_pageSize);
 	if (!m_searchEdit_userid->text().isEmpty()) {
-		params.insert("user_id", m_searchEdit_userid->text());
+		params.insert("user_account", m_searchEdit_userid->text());
 	}
 	if (!m_searchEdit_username->text().isEmpty()) {
 		params.insert("user_name", m_searchEdit_username->text());

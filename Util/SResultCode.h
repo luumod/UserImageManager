@@ -34,6 +34,8 @@ public:
 	//成功操作[0-999]
 	CODE(Success, 0, "成功");
 	CODE(SuccessButNoData, 1, "成功，但没有数据");
+	CODE(ImageLiked, 2, "成功", "点赞成功");
+	CODE(ImageUnliked, 3, "成功", "取消点赞");
 	//参数错误[1000-1999]
 	CODE(ParamJsonInvalid, 1000, "请求Json参数无效");
 	CODE(ParamInvalid, 1001, "参数非法");
@@ -53,6 +55,7 @@ public:
 	CODE(UserAuthInvalid, 3009, "用户认证无效");
 	CODE(UserAuthExpired, 3006, "用户认证已过期");
 	CODE(UserDeleted, 3010, "用户已被删除");
+	CODE(ImageLikedError, 3011, "点赞失败");
 #undef CODE
 
 	friend class SResult;

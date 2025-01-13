@@ -22,7 +22,7 @@ signals:
 private:
 	QJsonObject m_juser;
 
-	QLineEdit* m_user_id_edit{};
+	QLineEdit* m_user_account_edit{};
 	QLineEdit* m_username_edit{};
 	QLineEdit* m_mobile_edit{};
 	QLineEdit* m_email_edit{};

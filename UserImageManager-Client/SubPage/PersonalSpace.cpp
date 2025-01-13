@@ -91,6 +91,12 @@ void PersonalSpace::onClickedOneImage(int id) {
 	}
 	if (!m_imageDetailPage) {
 		m_imageDetailPage = new ImageDetailPage(this);
+		connect(m_imageDetailPage, &ImageDetailPage::imageLiked, this, [=](int image_index) {
+			m_imagesInfoMap[image_index].m_likeCount++;
+			});
+		connect(m_imageDetailPage, &ImageDetailPage::imageUnLiked, this, [=](int image_index) {
+			m_imagesInfoMap[image_index].m_likeCount--;
+			});
 		connect(m_imageDetailPage, &ImageDetailPage::nextImage, this, &PersonalSpace::onClickedOneImage);
 		connect(m_imageDetailPage, &ImageDetailPage::prevImage, this, &PersonalSpace::onClickedOneImage);
 	}
@@ -103,9 +109,9 @@ void PersonalSpace::onClickedOneImage(int id) {
 void PersonalSpace::onSearch()
 {
 	QVariantMap params;
-	auto filter = sApp->userData("user/user_id").toString();
+	auto filter = sApp->userData("user/user_account").toString();
 	if (!filter.isEmpty()) {
-		params.insert("user_id", filter);
+		params.insert("user_account", filter);
 	}
 	SHttpClient(URL("/api/user/get_image")).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
@@ -154,8 +160,8 @@ void PersonalSpace::loadImage(const QJsonArray& imagesArray)
 	for (int i = 0; i < imagesArray.size(); i++) {
 		auto image = imagesArray[i].toObject();
 		m_imagesInfoMap.insert(i,
-			ImageInfo(image["image_id"].toInt()
-				, image["owner_id"].toInt()
+			ImageInfo(image["image_id"].toInt() //image_id
+				, image["owner_id"].toInt()     // id
 				, image["image_path"].toString()
 				, image["image_name"].toString()
 				, image["image_size"].toInt()
@@ -166,7 +172,8 @@ void PersonalSpace::loadImage(const QJsonArray& imagesArray)
 				, image["image_ResolutionRatio"].toString()
 				, image["image_quality"].toString()
 				, image["upload_time"].toString()
-				, image["description"].toString()));
+				, image["description"].toString()
+				, image["like_count"].toInt()));
 	}
 }
 

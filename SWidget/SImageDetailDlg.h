@@ -17,11 +17,22 @@ public:
 	SImageDetailDlg(QWidget* parent = nullptr);
 	void init();
 
-	void setData(ImageInfo info);
+	void setData(ImageInfo info, int image_index);
 	void updateUi();
+
+	inline  int currentImageIndex() const { return m_currentImageIndex; }
+	inline void nextImage() { m_currentImageIndex++; }
+	inline void prevImage() { m_currentImageIndex--; }
+	void onLikeBtnClicked();
+signals:
+	void imageLiked(int image_index);
+	void imageUnLiked(int image_index);
 protected:
 	void paintEvent(QPaintEvent* event) override;
 private:
+	int m_currentImageIndex{};
+
+
 	TopWidget* m_topWidget{};
 
 	ImageInfo m_imageInfo;
@@ -37,6 +48,8 @@ private:
 	QLineEdit* m_imageSize{};
 	QLineEdit* m_imageDate{};
 	QTextEdit* m_imageDesc{};
+
+	QPushButton* m_likeBtn{};
 };
 
 class TopWidget : public QWidget

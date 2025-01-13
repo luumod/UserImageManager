@@ -19,7 +19,7 @@ public:
 	SApp(int& argc, char** argv);
 
 	/*
-	user/user_id
+	user/user_account
 	user/password
 	user/remember_pwd
 	user/auto_login

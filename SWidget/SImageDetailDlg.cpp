@@ -1,5 +1,7 @@
 ﻿#include "SImageDetailDlg.h"
 #include "SApp.h"
+#include "SHttpClient.h"
+#include "SResultCode.h"
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QBoxLayout>
@@ -50,16 +52,15 @@ void SImageDetailDlg::init()
 	m_imageLabel->setScaledContents(true);
 
 	auto loveLayout = new QHBoxLayout;
-	auto likeBtn = new QPushButton("👍赞(33)");
+	m_likeBtn = new QPushButton("👍赞(33)");
 	auto downloadBtn = new QPushButton("📄下载(19)");
 	auto starBtn = new QPushButton("🌟收藏(32)");
-	connect(likeBtn, &QPushButton::clicked, [=]() {
-		qDebug() << "likeBtn clicked"; });
+	connect(m_likeBtn, &QPushButton::clicked, this, &SImageDetailDlg::onLikeBtnClicked);
 	connect(downloadBtn, &QPushButton::clicked, [=]() {
 		qDebug() << "downloadBtn clicked"; });
 	connect(starBtn, &QPushButton::clicked, [=]() {
 		qDebug() << "starBtn clicked"; });
-	loveLayout->addWidget(likeBtn);
+	loveLayout->addWidget(m_likeBtn);
 	loveLayout->addWidget(downloadBtn);
 	loveLayout->addWidget(starBtn);
 
@@ -67,7 +68,6 @@ void SImageDetailDlg::init()
 	loveWidget->setFixedWidth(m_imageLabel->width());
 	loveWidget->setLayout(loveLayout);
 
-	//likeBtn->setStyleSheet("font-size: 18px; color: black; font: bold; margin-top: 5px; border: 1px dashed black;");
 	middleLeftLayout->addWidget(m_imageLabel);
 	middleLeftLayout->addWidget(loveWidget);
 
@@ -179,10 +179,10 @@ void SImageDetailDlg::paintEvent(QPaintEvent* event)
 	painter.end();
 }
 
-void SImageDetailDlg::setData(ImageInfo info)
+void SImageDetailDlg::setData(ImageInfo info,int image_index)
 {
+	m_currentImageIndex = image_index;
 	m_imageInfo = info;
-
 	updateUi();
 }
 
@@ -214,6 +214,55 @@ void SImageDetailDlg::updateUi()
 	m_imageDesc->setText(m_imageInfo.m_desc);
 	//加载图片
 	m_imageLabel->setPixmap(QPixmap::fromImage(QImage(imageFile.fileName())));
+
+	//点赞数
+	SHttpClient(URL("/api/user/like_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+		auto json = QJsonDocument::fromJson(data).object();
+		if (json["code"].toInt() < 1000) {
+			if (json["code"].toInt() == SResultCode::ImageLiked.code) {
+				//已经点赞了，显示取消点赞按钮
+				m_likeBtn->setText(QString("👍取消赞(%1)").arg(m_imageInfo.m_likeCount));
+			}
+			else if (json["code"].toInt() == SResultCode::ImageUnliked.code) {
+				//已经取消点赞了，显示点赞按钮
+				m_likeBtn->setText(QString("👍点赞(%1)").arg(m_imageInfo.m_likeCount));
+			}
+		}
+		else {
+			qWarning() << "Failed to like image:" << json["message"].toString();
+		}
+			})
+		.get();
+}
+
+//点赞 - 取消点赞
+void SImageDetailDlg::onLikeBtnClicked()
+{
+	SHttpClient(URL("/api/user/like_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+			auto json = QJsonDocument::fromJson(data).object();
+			if (json["code"].toInt() < 1000) {
+				if (json["code"].toInt() == SResultCode::ImageLiked.code) {
+					//点赞成功
+					m_imageInfo.m_likeCount++;
+					m_likeBtn->setText(QString("👍取消赞(%1)").arg(m_imageInfo.m_likeCount));
+					emit imageLiked(m_currentImageIndex);
+				}
+				else if (json["code"].toInt() == SResultCode::ImageUnliked.code) {
+					//取消点赞成功
+					m_imageInfo.m_likeCount--;
+					m_likeBtn->setText(QString("👍点赞(%1)").arg(m_imageInfo.m_likeCount));
+					emit imageUnLiked(m_currentImageIndex);
+				}
+			}
+			else {
+				qWarning() << "Failed to like image:" << json["message"].toString();
+			}
+		})
+		.post();
 }
 
 

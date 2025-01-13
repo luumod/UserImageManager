@@ -42,7 +42,7 @@ void SApp::debugUserData()
 
 void SApp::updateUserData(const QJsonObject& juser)
 {
-	if (juser.value("user_id").toString() == sApp->userData("user/user_id").toString()) {
+	if (juser.value("user_account").toString() == sApp->userData("user/user_account").toString()) {
 		//sApp->setUserData("user/avatar_path", QDir::currentPath() + "/" + juser.value("avatar_path").toString());
 		sApp->setUserData("user/user_name", juser.value("user_name").toString());
 		sApp->setUserData("user/email", juser.value("email").toString());

@@ -271,9 +271,9 @@ QString HomePage::uploadImage() {
 void HomePage::postImage() {
 	passNecessaryInfo();
 
-	///api/user/upload_image?user_id=1173012900&image_type=测试&description=《湘行散记》以作者回乡途中的所见所闻为线索，生动地描绘了湘西地区的自然风光、风土人情，充满了浓郁的乡土气息和诗意情怀。&image_share=0&image_download=1&image_ResolutionRatio=1920 x 1080&image_quality=高清
-	auto url = URL("/api/user/upload_image?user_id=" +
-		sApp->globalConfig()->value("user/user_id").toString() 
+	///api/user/upload_image?user_account=1173012900&image_type=测试&description=《湘行散记》以作者回乡途中的所见所闻为线索，生动地描绘了湘西地区的自然风光、风土人情，充满了浓郁的乡土气息和诗意情怀。&image_share=0&image_download=1&image_ResolutionRatio=1920 x 1080&image_quality=高清
+	auto url = URL("/api/user/upload_image?user_account=" +
+		sApp->globalConfig()->value("user/user_account").toString() 
 		+ "&image_type=" 
 		+ image.m_type 
 		+ "&description=" 

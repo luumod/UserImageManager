@@ -95,7 +95,7 @@ Server::Server()
 		auto db = wrap.openConnection();
 		db.transaction();
 		QSqlQuery query(db);
-		query.prepare("INSERT INTO user_info(user_id,password,user_name,gender,mobile,email) VALUES(?,?,?,?,?,?)");
+		query.prepare("INSERT INTO user_info(user_account,password,user_name,gender,mobile,email) VALUES(?,?,?,?,?,?)");
 		for (size_t i = 0; i < 10000; i++)
 		{
 			query.bindValue(0, QString::number(99999+i));
@@ -159,8 +159,8 @@ void Server::route_userInfo()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT * FROM user_info WHERE user_id='%1' AND password='%2' LIMIT 1")
-		.arg(jdom["user_id"].toString())
+		query.prepare(QString("SELECT * FROM user_info WHERE user_account='%1' AND password='%2' LIMIT 1")
+		.arg(jdom["user_account"].toString())
 		.arg(jdom["password"].toString()));
 		query.exec();
 #if _DEBUG
@@ -185,7 +185,7 @@ void Server::route_userInfo()
 
 		//生成token jwt
 		QJsonObject payLoad = {
-			{"user_id", jdom["user_id"]},
+			{"user_account", jdom["user_account"]},
 			{"iat",QDateTime::currentDateTime().toString(Qt::DateFormat::ISODate)},
 			{"exp",QDateTime::currentDateTime().addDays(7).toString(Qt::DateFormat::ISODate)}
 		};
@@ -193,7 +193,8 @@ void Server::route_userInfo()
 
 
 		QJsonObject jLoginUser;
-		jLoginUser.insert("user_id", query.value("user_id").toString());
+		jLoginUser.insert("id", query.value("id").toString());
+		jLoginUser.insert("user_account", query.value("user_account").toString());
 		jLoginUser.insert("user_name", query.value("user_name").toString());
 		jLoginUser.insert("password", query.value("password").toString());
 		jLoginUser.insert("gender", query.value("gender").toInt());
@@ -214,8 +215,8 @@ void Server::route_userInfo()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare("INSERT IGNORE INTO user_info (user_id, password, user_name, gender) VALUES (?,?,?,?)");
-		query.bindValue(0, jdom["user_id"].toString());
+		query.prepare("INSERT IGNORE INTO user_info (user_account, password, user_name, gender) VALUES (?,?,?,?)");
+		query.bindValue(0, jdom["user_account"].toString());
 		query.bindValue(1, jdom["password"].toString());
 		query.bindValue(2, jdom["user_name"].toString());
 		query.bindValue(3, jdom["gender"].toInt());
@@ -248,7 +249,7 @@ void Server::route_userInfo()
 		auto isEnable = uquery.queryItemValue("isEnable");
 		auto page = uquery.queryItemValue("page").toInt();
 		auto pageSize = uquery.queryItemValue("pageSize").toInt();
-		auto user_id = uquery.queryItemValue("user_id");
+		auto user_account = uquery.queryItemValue("user_account");
 		auto user_name = uquery.queryItemValue("user_name");
 		auto mobile = uquery.queryItemValue("mobile");
 		auto email = uquery.queryItemValue("email");
@@ -256,8 +257,8 @@ void Server::route_userInfo()
 
 		QString filter = "WHERE isDeleted=false ";
 		//模糊搜索
-		if (!user_id.isEmpty()) {
-			filter += QString(" AND user_id LIKE '%%1%'").arg(user_id);
+		if (!user_account.isEmpty()) {
+			filter += QString(" AND user_account LIKE '%%1%'").arg(user_account);
 		}
 		if (!user_name.isEmpty()) {
 			filter += QString(" AND user_name LIKE '%%1%'").arg(user_name);
@@ -296,7 +297,7 @@ void Server::route_userInfo()
 			page = 1;  // 超出范围，返回第一页
 		}
 
-		QString sql = "SELECT id,user_id,user_name,gender,mobile,email,isEnable FROM user_info ";
+		QString sql = "SELECT id,user_account,user_name,gender,mobile,email,isEnable FROM user_info ";
 		sql += filter;
 		sql += QString(" LIMIT %1,%2;").arg((page - 1) * pageSize).arg(pageSize);
 		query.exec(sql);
@@ -322,7 +323,7 @@ void Server::route_userInfo()
 		return SResult::success(jobj);
 		});
 
-	//用户查询(精确查询:user_id)
+	//用户查询(精确查询:user_account)
 	m_server.route("/api/user/queryUser", [](const QHttpServerRequest& request) {
 		//校验参数
 		std::optional<QByteArray> token = CheckToken(request);
@@ -331,12 +332,12 @@ void Server::route_userInfo()
 		}
 
 		auto uquery = request.query();
-		auto user_id = uquery.queryItemValue("user_id");
+		auto user_account = uquery.queryItemValue("user_account");
 		auto isEnable = uquery.queryItemValue("isEnable");
 		QString filter = "WHERE isDeleted=false ";
-		//通过user_id的查询
-		if (!user_id.isEmpty()) {
-			filter += QString(" and user_id='%1' ").arg(user_id);
+		//通过user_account的查询
+		if (!user_account.isEmpty()) {
+			filter += QString(" and user_account='%1' ").arg(user_account);
 		}
 		if (!isEnable.isEmpty()) {
 			filter += QString(" and isEnable=%1 ").arg((isEnable == "true" ? 1 : 0));
@@ -347,12 +348,12 @@ void Server::route_userInfo()
 		query.exec(QString("SELECT * FROM user_info %1 ").arg(filter));
 		CheckSqlQuery(query);
 #if _DEBUG
-		qDebug() << "精确查找:" << user_id;
+		qDebug() << "精确查找:" << user_account;
 		qDebug() << query.lastQuery();
 #endif
 		/*query.next();
 		auto id = query.record().value("id").toInt();
-		auto user_id = query.record().value("user_id").toInt();;
+		auto user_account = query.record().value("user_account").toInt();;
 		auto user_name = query.record().value("user_name").toString();
 		auto gender = query.record().value("gender").toInt();
 		auto mobile = query.record().value("mobile").toString();
@@ -382,7 +383,7 @@ void Server::route_userInfo()
 
 		//检查参数完整性
 		auto rObj = jdom.object();
-		if (!rObj.contains("user_id") ||
+		if (!rObj.contains("user_account") ||
 			!rObj.contains("user_name")) {
 			return SResult::error(SResultCode::ParamMissing);
 		}
@@ -393,8 +394,8 @@ void Server::route_userInfo()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		QString sql = QString("INSERT IGNORE INTO user_info (user_id,password,user_name,gender,mobile,email) VALUES('%1','%2','%3',%4,'%5','%6')")
-			.arg(jdom["user_id"].toString())
+		QString sql = QString("INSERT IGNORE INTO user_info (user_account,password,user_name,gender,mobile,email) VALUES('%1','%2','%3',%4,'%5','%6')")
+			.arg(jdom["user_account"].toString())
 			.arg(password)
 			.arg(jdom["user_name"].toString())
 			.arg(jdom["gender"].toInt())
@@ -432,7 +433,7 @@ void Server::route_userInfo()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare("UPDATE user_info SET isDeleted=true WHERE user_id=?");
+		query.prepare("UPDATE user_info SET isDeleted=true WHERE user_account=?");
 		for (int i = 0; i < jarray.size(); i++) {
 			query.bindValue(0, jarray[i].toString());
 			query.exec();
@@ -461,8 +462,8 @@ void Server::route_userInfo()
 		}
 
 		auto uquery = request.query();
-		auto user_id = uquery.queryItemValue("user_id");
-		if (user_id.isEmpty()) {
+		auto user_account = uquery.queryItemValue("user_account");
+		if (user_account.isEmpty()) {
 			return SResult::error(SResultCode::ParamMissing);
 		}
 
@@ -492,7 +493,7 @@ void Server::route_userInfo()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString(sql + " WHERE user_id='%1'").arg(user_id));
+		query.prepare(QString(sql + " WHERE user_account='%1'").arg(user_account));
 		query.exec();
 #if _DEBUG
 		qDebug() << "用户修改";
@@ -535,8 +536,8 @@ void Server::route_userInfo()
 				if (it.key() == "id") {
 					filter += QString("id='%1' and ").arg(it.value().toString());
 				}
-				else if (it.key() == "user_id") {
-					filter += QString("user_id='%1' and ").arg(it.value().toString());
+				else if (it.key() == "user_account") {
+					filter += QString("user_account='%1' and ").arg(it.value().toString());
 				}
 				else if (it.key() == "isEnable") {
 					filter += QString("isEnable=%1 and ").arg(it.value().toInt());
@@ -603,10 +604,10 @@ void Server::route_userInfo()
 		}
 
 		auto uquery = request.query();
-		if (uquery.queryItemValue("user_id").isEmpty()) {
+		if (uquery.queryItemValue("user_account").isEmpty()) {
 			return SResult::error(SResultCode::ParamMissing);
 		}
-		auto user_id = uquery.queryItemValue("user_id");
+		auto user_account = uquery.queryItemValue("user_account");
 
 		auto data = request.body();
 		if (data.isEmpty()) {
@@ -621,7 +622,7 @@ void Server::route_userInfo()
 		if (!dir.exists(path)) {
 			dir.mkpath(path);
 		}
-		QFile file(QString(path + user_id + "." + QFileInfo(parse.filename()).suffix()));
+		QFile file(QString(path + user_account + "." + QFileInfo(parse.filename()).suffix()));
 		if (!file.open(QIODevice::WriteOnly)) {
 			return SResult::error(SResultCode::ServerFileError);
 		}
@@ -629,7 +630,7 @@ void Server::route_userInfo()
 		//把路径写入数据库
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("UPDATE user_info SET avatar_path='%1' WHERE user_id='%2'").arg(file.fileName()).arg(user_id));
+		query.prepare(QString("UPDATE user_info SET avatar_path='%1' WHERE user_account='%2'").arg(file.fileName()).arg(user_account));
 		query.exec();
 #if _DEBUG
 		qDebug() << "用户头像上传";
@@ -656,15 +657,15 @@ void Server::route_userInfo()
 		}
 
 		auto uquery = request.query();
-		if (uquery.queryItemValue("user_id").isEmpty()) {
+		if (uquery.queryItemValue("user_account").isEmpty()) {
 			responder.write(SResultCode::ParamMissing.toJson(), "application/json");
 			return;
 		}
-		auto user_id = uquery.queryItemValue("user_id");
+		auto user_account = uquery.queryItemValue("user_account");
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT avatar_path FROM user_info WHERE user_id='%1' AND isDeleted=false").arg(user_id));
+		query.prepare(QString("SELECT avatar_path FROM user_info WHERE user_account='%1' AND isDeleted=false").arg(user_account));
 #if _DEBUG
 		qDebug() << "用户头像获取";
 		qDebug() << query.lastQuery();
@@ -710,15 +711,15 @@ void Server::route_userImage()
 		}
 
 		auto uquery = request.query();
-		//根据user_id查找user表中的id
-		auto user_id = uquery.queryItemValue("user_id"); //eg. user_id = 1173012900
-		if (user_id.isEmpty()) {
+		//根据user_account查找user表中的id
+		auto user_account = uquery.queryItemValue("user_account"); //eg. user_account = 1173012900
+		if (user_account.isEmpty()) {
 			return SResult::error(SResultCode::ParamMissing);
 		}
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT id,isEnable,isDeleted FROM user_info WHERE user_id='%1'").arg(user_id));
+		query.prepare(QString("SELECT id,isEnable,isDeleted FROM user_info WHERE user_account='%1'").arg(user_account));
 		if (!query.exec()) {
 			return SResult::error(SResultCode::ServerSqlQueryError);
 		}
@@ -768,8 +769,8 @@ void Server::route_userImage()
 		if (!dir.exists(path)) {
 			dir.mkpath(path);
 		}
-		//图片路径格式：images/upload/owner_id/user_id_时间戳_图片原名称.后缀名
-		QFile file(QString(path + user_id 
+		//图片路径格式：images/upload/owner_id/user_account_时间戳_图片原名称.后缀名
+		QFile file(QString(path + user_account 
 			+ "_" + QDateTime::currentDateTime().toString("yyyyMMddHHmmss") 
 			+ "_" + QFileInfo(parse.filename()).fileName()));
 		if (!file.open(QIODevice::WriteOnly)) {
@@ -817,21 +818,21 @@ void Server::route_userImage()
 		}
 
 		auto uquery = request.query();
-		if (uquery.queryItemValue("user_id").isEmpty()) {
+		if (uquery.queryItemValue("user_account").isEmpty()) {
 			responder.write(SResultCode::ParamMissing.toJson(), "application/json");
 			return;
 		}
-		auto user_id = uquery.queryItemValue("user_id").toInt();
+		auto user_account = uquery.queryItemValue("user_account").toInt();
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT id FROM user_info WHERE user_id=%1 AND isDeleted=false AND isEnable=true").arg(user_id));
+		query.prepare(QString("SELECT id FROM user_info WHERE user_account=%1 AND isDeleted=false AND isEnable=true").arg(user_account));
 		if (!query.exec()) {
 			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 			return;
 		}
 #if _DEBUG	
-		qDebug() << "获取用户id";
+		qDebug() << "用户图片获取";
 		qDebug() << query.lastQuery();
 #endif
 		query.next();
@@ -843,7 +844,6 @@ void Server::route_userImage()
 		query.prepare(QString("SELECT * FROM user_image WHERE owner_id=%1")
 			.arg(owner_id));
 #if _DEBUG	
-		qDebug() << "用户图片获取";
 		qDebug() << query.lastQuery();
 #endif
 		if (!query.exec()) {
@@ -851,10 +851,27 @@ void Server::route_userImage()
 			return;
 		}
 
+
+		QList<int> image_like;
 		QJsonArray jarray;
+		SSqlConnectionWrap wrap2;
+		QSqlQuery query_everyImage_likes(wrap2.openConnection());
+		int i = 0;
 		while (query.next()) {
+			auto image_id = query.value("image_id").toInt(); //获取每张图片id
+			query_everyImage_likes.prepare(QString("SELECT COUNT(*) as sum FROM image_like WHERE image_id=%1").arg(image_id)); //统计每一张图片的点赞数
+			//统计图片点赞数（还可以获取所有点赞的用户，以后可以增加一个开通vip可查看的功能）
+			if (!query_everyImage_likes.exec()) {
+				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+				return;
+			}
+#if _DEBUG	
+			qDebug() << query_everyImage_likes.lastQuery();
+#endif
+			query_everyImage_likes.next();
+		
 			QJsonObject jobj;
-			jobj.insert("image_id", query.value("image_id").toInt());
+			jobj.insert("image_id", image_id);
 			jobj.insert("owner_id", query.value("owner_id").toInt());
 			jobj.insert("image_path", query.value("image_path").toString());
 			jobj.insert("image_name", query.value("image_name").toString());
@@ -867,6 +884,7 @@ void Server::route_userImage()
 			jobj.insert("image_quality", query.value("image_quality").toString());
 			jobj.insert("upload_time", query.value("upload_time").toString());
 			jobj.insert("description", query.value("description").toString());
+			jobj.insert("like_count", query_everyImage_likes.value("sum").toInt());
 			jarray.append(jobj);
 		}
 
@@ -878,6 +896,99 @@ void Server::route_userImage()
 		QJsonObject jobj;
 		jobj.insert("images", jarray);
 		responder.write(SResult::success(jobj), "application/json");
+		});
+
+	//用户图片点赞：POST
+	m_server.route("/api/user/like_image", QHttpServerRequest::Method::Post, [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("user_id").isEmpty() || uquery.queryItemValue("image_id").isEmpty()) {
+			return SResult::error(SResultCode::ParamMissing);
+		}
+
+		auto user_id = uquery.queryItemValue("user_id");
+		auto image_id = uquery.queryItemValue("image_id");
+		
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		//首先查询点赞是否已经存在
+		query.prepare(QString("SELECT * FROM image_like WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+		if (query.next()) {
+			//已经点赞过了，取消点赞
+			query.prepare(QString("DELETE FROM image_like WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
+			if (!query.exec()) {
+				return SResult::error(SResultCode::ServerSqlQueryError);
+			}
+			CheckSqlQuery(query);
+#if _DEBUG
+			qDebug() << "用户取消图片点赞";
+			qDebug() << query.lastQuery();
+#endif
+			return SResult::success(SResultCode::ImageUnliked);
+		}
+
+		query.prepare(QString("INSERT IGNORE INTO image_like(user_id, image_id, like_time) VALUES (%1,%2,'%3')")
+			.arg(user_id.toInt())
+			.arg(image_id.toInt())
+			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")));
+
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+
+		CheckSqlQuery(query);
+
+#if _DEBUG
+		qDebug() << "用户图片点赞";
+		qDebug() << query.lastQuery();
+#endif
+
+		//检查是否插入成功
+		if (query.numRowsAffected() == 0) {
+			return SResult::error(SResultCode::ImageLikedError);
+		}
+
+		return SResult::success(SResultCode::ImageLiked);
+		});
+
+	//检查用户是否点赞过图片：GET
+	m_server.route("/api/user/like_image", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("user_id").isEmpty() || uquery.queryItemValue("image_id").isEmpty()) {
+			return SResult::error(SResultCode::ParamMissing);
+		}
+
+		auto user_id = uquery.queryItemValue("user_id");
+		auto image_id = uquery.queryItemValue("image_id");
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		//首先查询点赞是否已经存在
+		query.prepare(QString("SELECT * FROM image_like WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+		if (query.next()) {
+			return SResult::success(SResultCode::ImageLiked);
+		}
+
+		return SResult::success(SResultCode::ImageUnliked);
 		});
 }
 
