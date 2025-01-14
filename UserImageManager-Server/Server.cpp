@@ -807,7 +807,7 @@ void Server::route_userImage()
 		return SResult::success();
 		});
 
-	//用户图片获取：获取某个用户的全部图片 GET
+	//用户图片获取：获取某个用户上传的全部图片 GET
 	m_server.route("/api/user/get_image", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
 
 		//校验参数
@@ -1145,6 +1145,111 @@ void Server::route_userImage()
 		return SResult::success(SResultCode::ImageUnStared);
 		});
 
+	//用户评论：POST
+	m_server.route("/api/user/comment_image", QHttpServerRequest::Method::Post, [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("user_id").isEmpty() || uquery.queryItemValue("image_id").isEmpty()) {
+			return SResult::error(SResultCode::ParamMissing);
+		}
+
+		auto user_id = uquery.queryItemValue("user_id");
+		auto image_id = uquery.queryItemValue("image_id");
+		auto comment_content = uquery.queryItemValue("comment_content");
+		if (comment_content.isEmpty()) {
+			comment_content = "这张图片真不错！";//默认评论
+		}
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		query.prepare(QString("INSERT IGNORE INTO image_comment(image_id, user_id,comment_content, comment_time) VALUES (%1,%2,'%3','%4')")
+			.arg(image_id.toInt())
+			.arg(user_id.toInt())
+			.arg(comment_content)
+			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+
+#if _DEBUG
+		qDebug() << "用户图片评论";
+		qDebug() << query.lastQuery();
+#endif
+
+		//检查是否插入成功
+		if (query.numRowsAffected() == 0) {
+			return SResult::error(SResultCode::ImageCommentError);
+		}
+
+		return SResult::success(SResultCode::ImageCommented);
+		});
+	
+	//获取某个图片的全部评论，以及对应的所有评论者信息：GET
+	m_server.route("/api/user/get_comment", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			responder.write(token.value(), "application/json");
+			return;
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("image_id").isEmpty()) {
+			responder.write(SResultCode::ParamMissing.toJson(), "application/json");
+			return;
+		}
+		auto image_id = uquery.queryItemValue("image_id").toInt();
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		query.prepare(QString("SELECT user_id,comment_content,comment_time FROM image_comment WHERE image_id=%1 AND isDeleted=false")
+			.arg(image_id));
+		if (!query.exec()) {
+			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+			return;
+		}
+		QJsonArray jarray;
+		SSqlConnectionWrap wrap2;
+		QSqlQuery query_user_info(wrap2.openConnection());
+		int i = 0;
+		while (query.next()) {
+			auto user_id = query.value("user_id").toInt(); //获取每个评论对应的用户id
+			auto comment_content = query.value("comment_content").toString(); //获取每个评论对应的内容
+			auto comment_time = query.value("comment_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss"); //获取每个评论的时间
+			query_user_info.prepare(QString("SELECT user_name,avatar_path FROM user_info WHERE id=%1").arg(user_id)); //获取评论者的信息
+			//统计图片点赞数（还可以获取所有点赞的用户，以后可以增加一个开通vip可查看的功能）
+			if (!query_user_info.exec()) {
+				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+				return;
+			}
+#if _DEBUG	
+			qDebug() << query_user_info.lastQuery();
+#endif
+			query_user_info.next();
+
+			QJsonObject jobj;
+			jobj.insert("comment_content", comment_content);
+			jobj.insert("comment_time", comment_time);
+			jobj.insert("user_name", query_user_info.value("user_name").toString());
+			jobj.insert("avatar_path", query_user_info.value("avatar_path").toString());
+			jarray.append(jobj);
+		}
+
+		if (jarray.isEmpty()) {
+			responder.write(SResultCode::SuccessButNoData.toJson(), "application/json");
+			return;
+		}
+
+		QJsonObject jobj;
+		jobj.insert("users", jarray);
+		responder.write(SResult::success(jobj), "application/json");
+		});
 
 }
 

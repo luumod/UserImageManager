@@ -38,6 +38,7 @@ public:
 	CODE(ImageUnliked, 3, "成功", "取消点赞");
 	CODE(ImageStared, 4, "成功", "收藏成功");
 	CODE(ImageUnStared, 5, "成功", "取消收藏");
+	CODE(ImageCommented, 6, "成功", "评论成功");
 	//参数错误[1000-1999]
 	CODE(ParamJsonInvalid, 1000, "请求Json参数无效");
 	CODE(ParamInvalid, 1001, "参数非法");
@@ -59,6 +60,7 @@ public:
 	CODE(UserDeleted, 3010, "用户已被删除");
 	CODE(ImageLikedError, 3011, "点赞失败");
 	CODE(ImageStaredError, 3012, "收藏失败");
+	CODE(ImageCommentError, 3013, "评论失败");
 #undef CODE
 
 	friend class SResult;

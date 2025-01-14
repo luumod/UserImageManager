@@ -43,7 +43,7 @@ inline void SCommentDlg::init()
 
 	auto textLayout = new QVBoxLayout;
 	auto textEdit = new QTextEdit;
-	textEdit->setFixedHeight(300);	
+	textEdit->setFixedHeight(300);
 	textEdit->setPlaceholderText("请输入评论...");
 	textEdit->setCursorWidth(2);
 
@@ -82,26 +82,18 @@ inline void SCommentDlg::init()
 	textLayout->addLayout(submitLayout);
 
 
-	middleLayout->addWidget(textLab,1);
-	middleLayout->addLayout(textLayout,7);
+	middleLayout->addWidget(textLab, 1);
+	middleLayout->addLayout(textLayout, 7);
 
 	//底部：评论区
-	auto bottomLayout = new QVBoxLayout;
-	addUserComment(new SUserComment("F:/1.png","张三", "这张图片真不错啊，值得一看！点赞 + 评论 +收藏！！！"));
-	addUserComment(new SUserComment("F:/2.png", "李四", "可以加个好友吗？我想向您请教一下！"));
-	addUserComment(new SUserComment("F:/2.png", "李四", "可以加个好友吗？我想向您请教一下！"));
-	addUserComment(new SUserComment("F:/2.png", "李四", "可以加个好友吗？我想向您请教一下！"));
-	addUserComment(new SUserComment("F:/2.png", "李四", "可以加个好友吗？我想向您请教一下！"));
-	addUserComment(new SUserComment("F:/2.png", "李四", "可以加个好友吗？我想向您请教一下！"));
-	bottomLayout->setSpacing(20);
-	for (const auto& userComment : m_userComments) {
-		bottomLayout->addWidget(userComment);
-	}
+	m_bottomLayout = new QVBoxLayout;
+	m_bottomLayout->setSpacing(20);
+		
 
 
 	main_layout->addLayout(middleLayout);
 	main_layout->addStretch();
-	main_layout->addLayout(bottomLayout);
+	main_layout->addLayout(m_bottomLayout);
 
 	main_layout->setSpacing(5);
 }
@@ -109,6 +101,27 @@ inline void SCommentDlg::init()
 void SCommentDlg::addUserComment(SUserComment* userComment)
 {
 	m_userComments.push_back(userComment);
+}
+
+void SCommentDlg::setData(const QString& userName, const QString& userAvatar, const QString& userComment, const QString& time)
+{
+	addUserComment(new SUserComment(userAvatar,userName , userComment, time));
+	for (const auto& userComment : m_userComments) {
+		m_bottomLayout->addWidget(userComment);
+	}
+}
+
+void SCommentDlg::clearData()
+{
+	for (int i = m_userComments.size() - 1; i >= 0; i--) {
+		auto userComment = m_userComments[i];
+		if (userComment) {
+			m_bottomLayout->removeWidget(userComment);
+			delete userComment;
+			userComment = nullptr;
+		}
+	}
+	m_userComments.clear();
 }
 
 

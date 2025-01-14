@@ -1,7 +1,10 @@
 ﻿#include "ImageDetailPage.h"
 #include "SImageDetailDlg.h"
 #include "SCommentDlg.h"
+#include "SHttpClient.h"
+#include "SApp.h"
 #include <QPushButton>
+#include <QDir>
 #include <QBoxLayout>
 #include <QScrollArea>
 
@@ -114,5 +117,32 @@ void ImageDetailPage::init()
 
 void ImageDetailPage::setData(ImageInfo info,int image_index)
 {
+	//1. 图片基本信息
 	m_imageDetailDlg->setData(info, image_index);
+
+	//2. 图片评论信息
+	SHttpClient(URL("/api/user/get_comment?image_id=" + QString::number(info.m_id))).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+		QJsonParseError error;
+		auto jdom = QJsonDocument::fromJson(data, &error);
+		if (error.error != QJsonParseError::NoError) {
+			qWarning() << "Json解析错误: " << error.errorString();
+			return;
+		}
+		if (jdom["code"].toInt() < 1000) {
+			auto jUsers = jdom["data"]["users"].toArray();
+			m_commentDlg->clearData();
+			for (int i = 0; i < jUsers.size(); i++) {
+				auto jUser = jUsers.at(i).toObject();
+				m_commentDlg->setData(
+					jUser.value("user_name").toString(),
+					jUser.value("avatar_path").toString().isEmpty() ? "" : QDir::currentPath() + "/" + jUser.value("avatar_path").toString(),
+					jUser.value("comment_content").toString(),
+					jUser.value("comment_time").toString()
+					);
+			}
+		}
+		})
+		.get(); // 发送get请求
 }

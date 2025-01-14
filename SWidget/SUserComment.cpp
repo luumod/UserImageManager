@@ -6,11 +6,12 @@
 #include <QTextEdit>
 #include <QPixmap>
 
-SUserComment::SUserComment(const QString& avatarPath, const QString& userName, const QString& comment, QWidget* parent)
+SUserComment::SUserComment(const QString& avatarPath, const QString& userName, const QString& comment, const QString& commentTime, QWidget* parent)
 	: QWidget(parent)
 	, m_avatarPath(avatarPath)
 	, m_userName(userName)
 	, m_comment(comment)
+	, m_commentTime(commentTime)
 {
 	this->setFixedSize(1400, 140);
 	init();
@@ -29,6 +30,10 @@ void SUserComment::init()
 	//左侧：头像 + 昵称
 	auto leftLayout = new QVBoxLayout;
 
+
+	if (m_avatarPath.isEmpty()) {
+		m_avatarPath = ":/ResourceClient/default_avatar.png";
+	}
 	QPixmap headPixmap(m_avatarPath);
 	auto avatarLabel = new QLabel;
 	avatarLabel->setFixedSize(70, 70);
@@ -48,7 +53,7 @@ void SUserComment::init()
 	contentEdit->setReadOnly(true);
 
 	auto timeLabel = new QLabel;
-	timeLabel->setText("2021-08-01 12:00:00");
+	timeLabel->setText(m_commentTime);
 	timeLabel->setStyleSheet("font-size: 14px; color: rgb(150,150,150); font-family: 微软雅黑; ");
 	timeLabel->setAlignment(Qt::AlignLeft);
 
