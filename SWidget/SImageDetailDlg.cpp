@@ -10,9 +10,11 @@
 #include <QPushButton>
 #include <QFile>
 #include <QDir>
+#include <QFileDialog>
 #include <QPainter>
 #include <QGraphicsDropShadowEffect>
-
+#include <QStandardPaths>
+#include <QMessageBox>
 
 SImageDetailDlg::SImageDetailDlg(QWidget* parent)
 	:QWidget(parent)
@@ -53,14 +55,13 @@ void SImageDetailDlg::init()
 
 	auto loveLayout = new QHBoxLayout;
 	m_likeBtn = new QPushButton("👍赞(33)");
-	auto downloadBtn = new QPushButton("📄下载(19)");
+	m_downloadBtn = new QPushButton("📄下载(19)");
 	m_starBtn = new QPushButton("🌟收藏(32)");
 	connect(m_likeBtn, &QPushButton::clicked, this, &SImageDetailDlg::onLikeBtnClicked);
-	connect(downloadBtn, &QPushButton::clicked, [=]() {
-		qDebug() << "downloadBtn clicked"; });
+	connect(m_downloadBtn, &QPushButton::clicked, this, &SImageDetailDlg::onDownloadBtnClicked);
 	connect(m_starBtn, &QPushButton::clicked, this, &SImageDetailDlg::onStarBtnClicked);
 	loveLayout->addWidget(m_likeBtn);
-	loveLayout->addWidget(downloadBtn);
+	loveLayout->addWidget(m_downloadBtn);
 	loveLayout->addWidget(m_starBtn);
 
 	auto loveWidget = new QWidget;
@@ -214,7 +215,7 @@ void SImageDetailDlg::updateUi()
 	//加载图片
 	m_imageLabel->setPixmap(QPixmap::fromImage(QImage(imageFile.fileName())));
 
-	//点赞数
+	//获取点赞数，同时判断当前用户是否点赞
 	SHttpClient(URL("/api/user/like_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 		.success([=](const QByteArray& data) {
@@ -235,7 +236,7 @@ void SImageDetailDlg::updateUi()
 			})
 		.get();
 
-	//收藏数
+	//获取收藏数，同时判断当前用户是否收藏
 	SHttpClient(URL("/api/user/star_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)
 		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
 		.success([=](const QByteArray& data) {
@@ -243,11 +244,11 @@ void SImageDetailDlg::updateUi()
 		if (json["code"].toInt() < 1000) {
 			if (json["code"].toInt() == SResultCode::ImageStared.code) {
 				//已经收藏了，显示取消收藏按钮
-				m_starBtn->setText(QString("👍取消收藏(%1)").arg(m_imageInfo.m_starCount));
+				m_starBtn->setText(QString("🌟取消收藏(%1)").arg(m_imageInfo.m_starCount));
 			}
 			else if (json["code"].toInt() == SResultCode::ImageUnStared.code) {
 				//已经取消收藏了，显示收藏按钮
-				m_starBtn->setText(QString("👍收藏(%1)").arg(m_imageInfo.m_starCount));
+				m_starBtn->setText(QString("🌟收藏(%1)").arg(m_imageInfo.m_starCount));
 			}
 		}
 		else {
@@ -255,6 +256,9 @@ void SImageDetailDlg::updateUi()
 		}
 			})
 		.get();
+
+	//获取下载数（下载无需查询）
+	m_downloadBtn->setText(QString("📄下载次数(%1)").arg(m_imageInfo.m_downloadCount));
 }
 
 //点赞 - 取消点赞
@@ -285,6 +289,42 @@ void SImageDetailDlg::onLikeBtnClicked()
 		.post();
 }
 
+//下载图片
+void SImageDetailDlg::onDownloadBtnClicked()
+{
+	SHttpClient(URL("/api/user/download_image?image_id=" + QString::number(m_imageInfo.m_id))).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.fail([=](const QString& msg, int code) {
+			})
+		.success([=](const QByteArray& data){
+				if (data.startsWith('{')){
+					qDebug() << "下载图片失败";
+				}
+				else{
+					auto img = QImage::fromData(data); //从服务器获取图片
+					
+					auto path = sApp->globalConfig()->value("user/download_image_path", //默认选择下载图片的存放路径
+						QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)).toString();
+					auto filename = QFileDialog::getSaveFileName(this, "下载图片", path, "Images (*.png *.jpg *.jpeg)");
+					if (filename.isEmpty()) {
+						qDebug() << "取消下载";
+						return;
+					}
+					sApp->globalConfig()->setValue("user/download_image_path", QFileInfo(filename).absoluteDir().absolutePath());
+					if (img.save(filename)) { //保存图片到本地
+						QMessageBox::information(this, "下载成功", "图片已保存到" + filename);
+						m_imageInfo.m_downloadCount++;
+						emit imageDownloaded(m_currentImageIndex);
+						m_downloadBtn->setText(QString("📄下载次数(%1)").arg(m_imageInfo.m_downloadCount));
+					}
+					else {
+						QMessageBox::warning(this, "下载失败", "图片保存失败");
+					}
+				}
+			})
+		.get();
+}
+
 //收藏- 取消收藏
 void SImageDetailDlg::onStarBtnClicked()
 {
@@ -296,13 +336,13 @@ void SImageDetailDlg::onStarBtnClicked()
 			if (json["code"].toInt() == SResultCode::ImageStared.code) {
 				//收藏成功
 				m_imageInfo.m_starCount++;
-				m_starBtn->setText(QString("👍取消收藏(%1)").arg(m_imageInfo.m_starCount));
+				m_starBtn->setText(QString("🌟取消收藏(%1)").arg(m_imageInfo.m_starCount));
 				emit imageStared(m_currentImageIndex);
 			}
 			else if (json["code"].toInt() == SResultCode::ImageUnStared.code) {
 				//取消收藏成功
 				m_imageInfo.m_starCount--;
-				m_starBtn->setText(QString("👍收藏(%1)").arg(m_imageInfo.m_starCount));
+				m_starBtn->setText(QString("🌟收藏(%1)").arg(m_imageInfo.m_starCount));
 				emit imageUnStared(m_currentImageIndex);
 			}
 		}

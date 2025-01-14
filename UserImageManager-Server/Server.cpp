@@ -807,7 +807,7 @@ void Server::route_userImage()
 		return SResult::success();
 		});
 
-	//用户图片获取: GET
+	//用户图片获取：获取某个用户的全部图片 GET
 	m_server.route("/api/user/get_image", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
 
 		//校验参数
@@ -853,25 +853,21 @@ void Server::route_userImage()
 
 
 		QJsonArray jarray;
-		SSqlConnectionWrap wrap2,wrap3;
-		QSqlQuery query_everyImage_likes(wrap2.openConnection());
-		QSqlQuery query_everyImage_stars(wrap3.openConnection());
+		SSqlConnectionWrap wrap2;
+		QSqlQuery query_everyImage_statistics(wrap2.openConnection());
 		int i = 0;
 		while (query.next()) {
 			auto image_id = query.value("image_id").toInt(); //获取每张图片id
-			query_everyImage_likes.prepare(QString("SELECT COUNT(*) as sum_likes FROM image_like WHERE image_id=%1").arg(image_id)); //统计每一张图片的点赞数
-			query_everyImage_stars.prepare(QString("SELECT COUNT(*) as sum_stars FROM image_star WHERE image_id=%1").arg(image_id)); //统计每一张图片的收藏数
+			query_everyImage_statistics.prepare(QString("SELECT like_count,star_count,download_count,comment_count FROM image_statistics WHERE image_id=%1").arg(image_id)); //统计每一张图片的统计数据数
 			//统计图片点赞数（还可以获取所有点赞的用户，以后可以增加一个开通vip可查看的功能）
-			if (!query_everyImage_likes.exec()  || !query_everyImage_stars.exec()) {
+			if (!query_everyImage_statistics.exec()) {
 				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 				return;
 			}
 #if _DEBUG	
-			qDebug() << query_everyImage_likes.lastQuery();
-			qDebug() << query_everyImage_stars.lastQuery();
+			qDebug() << query_everyImage_statistics.lastQuery();
 #endif
-			query_everyImage_likes.next();
-			query_everyImage_stars.next();
+			query_everyImage_statistics.next();
 	
 			QJsonObject jobj;
 			jobj.insert("image_id", image_id);
@@ -887,8 +883,10 @@ void Server::route_userImage()
 			jobj.insert("image_quality", query.value("image_quality").toString());
 			jobj.insert("upload_time", query.value("upload_time").toString());
 			jobj.insert("description", query.value("description").toString());
-			jobj.insert("like_count", query_everyImage_likes.value("sum_likes").toInt());
-			jobj.insert("star_count", query_everyImage_stars.value("sum_stars").toInt());
+			jobj.insert("like_count", query_everyImage_statistics.value("like_count").toInt());
+			jobj.insert("star_count", query_everyImage_statistics.value("star_count").toInt());
+			jobj.insert("download_count", query_everyImage_statistics.value("download_count").toInt());
+			jobj.insert("comment_count", query_everyImage_statistics.value("comment_count").toInt());
 			jarray.append(jobj);
 		}
 
@@ -900,6 +898,65 @@ void Server::route_userImage()
 		QJsonObject jobj;
 		jobj.insert("images", jarray);
 		responder.write(SResult::success(jobj), "application/json");
+		});
+
+	//用户图片下载: 下载某一张图片 GET
+	m_server.route("/api/user/download_image", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
+
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			responder.write(token.value(), "application/json");
+			return;
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("image_id").isEmpty()) {
+			responder.write(SResultCode::ParamMissing.toJson(), "application/json");
+			return;
+		}
+		auto image_id = uquery.queryItemValue("image_id");
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		query.prepare(QString("SELECT image_path FROM user_image WHERE image_id='%1'").arg(image_id));
+		if (!query.exec()) {
+			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+			return;
+		}
+#if _DEBUG
+		qDebug() << "用户图片下载";
+		qDebug() << query.lastQuery();
+#endif
+
+		if (!query.next()) {
+			responder.write(SResultCode::SuccessButNoData.toJson(), "application/json");
+			return;
+		}
+
+		auto relative_path = query.value("image_path").toString(); //../images/upload/1/1173012900_20250113175619_Spider man.png
+		if (relative_path.isEmpty()) {
+			responder.write(SResultCode::SuccessButNoData.toJson(), "application/json");
+			return;
+		}
+		QFile file(QDir::currentPath() + "/" + relative_path); //absolute path
+		if (!file.open(QIODevice::ReadOnly)) {
+			responder.write(SResult::error(SResultCode::ServerFileError, "头像未找到"), "application/json");
+			return;
+		}
+
+		//更新统计表
+		query.prepare(QString("UPDATE image_statistics SET download_count=download_count+1 WHERE image_id=%1").arg(image_id));
+		if (!query.exec()) {
+			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+			return;
+		}
+
+		responder.writeStatusLine();
+		responder.writeHeader("Content-Type", QString("image/%1").arg(QFileInfo(file.fileName()).suffix()).toUtf8());
+		responder.writeHeader("Content-Length", QByteArray::number(file.size()));
+		responder.writeHeader("Content-Disposition", "attachment; filename=" + file.fileName().toUtf8());
+		responder.writeBody(file.readAll());
 		});
 
 	//用户图片点赞：POST
@@ -1087,5 +1144,7 @@ void Server::route_userImage()
 
 		return SResult::success(SResultCode::ImageUnStared);
 		});
+
+
 }
 

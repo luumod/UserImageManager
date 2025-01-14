@@ -82,6 +82,10 @@ void ImageDetailPage::init()
 	connect(m_imageDetailDlg, &SImageDetailDlg::imageUnStared, this, [=](int image_index) {
 		emit imageUnStared(image_index);
 		});
+	connect(m_imageDetailDlg, &SImageDetailDlg::imageDownloaded, this, [=](int image_index) {
+		emit imageDownloaded(image_index);
+		});
+	
 }
 
 void ImageDetailPage::setData(ImageInfo info,int image_index)

@@ -20,10 +20,12 @@ public:
 
 	int m_likeCount{};//点赞数
 	int m_starCount{};//收藏数
+	int m_downloadCount{};//下载数
+	int m_commentCount{};//评论数
 
 	ImageInfo(){}
-	ImageInfo(int id, int owner_id, const QString& path, const QString& name, int size, const QString& format, int share, const QString& type, int download, const QString& resolutionRatio, const QString& quality, const QString& upload_time, const QString& desc, int likeCount, int starCount)
-		: m_id(id), m_owner_id(owner_id), m_path(path), m_name(name), m_size(size), m_format(format), m_share(share), m_type(type), m_download(download), m_ResolutionRatio(resolutionRatio), m_quality(quality), m_upload_time(upload_time), m_desc(desc), m_likeCount(likeCount), m_starCount(starCount) {
+	ImageInfo(int id, int owner_id, const QString& path, const QString& name, int size, const QString& format, int share, const QString& type, int download, const QString& resolutionRatio, const QString& quality, const QString& upload_time, const QString& desc, int likeCount, int starCount, int downloadCount, int commentCount)
+		: m_id(id), m_owner_id(owner_id), m_path(path), m_name(name), m_size(size), m_format(format), m_share(share), m_type(type), m_download(download), m_ResolutionRatio(resolutionRatio), m_quality(quality), m_upload_time(upload_time), m_desc(desc), m_likeCount(likeCount), m_starCount(starCount), m_downloadCount(downloadCount), m_commentCount(commentCount) {
 	}
 	inline void set_image_id(int id) { m_id = id; }
 	inline void set_image_owner_id(int owner_id) { m_owner_id = owner_id; }

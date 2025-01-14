@@ -83,12 +83,25 @@ void PersonalSpace::onChangeNextPage()
 }
 
 void PersonalSpace::onClickedOneImage(int id) {
-	if (id < 0) {
-		id = m_images.size() - 1;
+	if (id == -1 && m_currentPage == 0) { //第一页的第一张---->最后一页的最后一张
+		m_currentPage = m_totalPage - 1;
+		id = m_lastPageImageCount - 1;
 	}
-	else if (id >= m_images.size()) {
+	else if (id == 5 && m_currentPage > 0) { // 第二，三，....页的第一张---->上一页的最后一张
+		m_currentPage--;
+	}
+	else if (id >= m_images.size()) { //当前页的最后一张---->下一页的第一张，或者第一页的第一张
 		id = 0;
+		m_currentPage++;
+		if (m_currentPage >= m_totalPage){
+			m_currentPage = 0;
+		}
 	}
+
+#if _DEBUG
+	qDebug() << "---------- 当前页：" << m_currentPage << "  第" << id << "张图片 ----------------";
+#endif
+
 	if (!m_imageDetailPage) {
 		m_imageDetailPage = new ImageDetailPage(this);
 		connect(m_imageDetailPage, &ImageDetailPage::imageLiked, this, [=](int image_index) {
@@ -102,6 +115,9 @@ void PersonalSpace::onClickedOneImage(int id) {
 			});
 		connect(m_imageDetailPage, &ImageDetailPage::imageUnStared, this, [=](int image_index) {
 			m_imagesInfoMap[image_index].m_starCount--;
+			});
+		connect(m_imageDetailPage, &ImageDetailPage::imageDownloaded, this, [=](int image_index) {
+			m_imagesInfoMap[image_index].m_downloadCount++;
 			});
 		connect(m_imageDetailPage, &ImageDetailPage::nextImage, this, &PersonalSpace::onClickedOneImage);
 		connect(m_imageDetailPage, &ImageDetailPage::prevImage, this, &PersonalSpace::onClickedOneImage);
@@ -157,6 +173,8 @@ void PersonalSpace::initParase(const QJsonObject& obj) //只初始化一次
 	images_layout_3->addWidget(m_images[5]);
 
 	auto jArray = obj["data"]["images"].toArray();
+	m_totalPage = std::ceil(jArray.size() * 1.0 / m_images.size()); //总页数从1开始（上取整）
+	m_lastPageImageCount = jArray.size() % m_images.size(); //最后一页的图片数量
 	loadImage(jArray);
 }
 
@@ -180,7 +198,9 @@ void PersonalSpace::loadImage(const QJsonArray& imagesArray)
 				, image["upload_time"].toString()
 				, image["description"].toString()
 				, image["like_count"].toInt()
-				, image["star_count"].toInt()));
+				, image["star_count"].toInt()
+				, image["download_count"].toInt()
+				, image["comment_count"].toInt()));
 	}
 }
 

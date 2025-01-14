@@ -45,6 +45,8 @@ private:
 	int m_firstImageIndex = 0;
 	int m_lastImageIndex = 5;
 	int m_currentPage = 0;  //默认第0页 
+	int m_totalPage = 0;    //总页数
+	int m_lastPageImageCount = 0; //最后一页的图片数量
 	QMap<int, ImageInfo> m_imagesInfoMap;
 
 	ImageDetailPage* m_imageDetailPage{};
