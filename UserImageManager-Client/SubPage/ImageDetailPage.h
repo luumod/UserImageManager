@@ -19,6 +19,8 @@ signals:
 	void prevImage(int prevIndex);
 	void imageLiked(int image_index);
 	void imageUnLiked(int image_index);
+	void imageStared(int image_index);
+	void imageUnStared(int image_index);
 public:
 	SImageDetailDlg* m_imageDetailDlg{};
 };

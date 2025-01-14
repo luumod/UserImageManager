@@ -24,9 +24,12 @@ public:
 	inline void nextImage() { m_currentImageIndex++; }
 	inline void prevImage() { m_currentImageIndex--; }
 	void onLikeBtnClicked();
+	void onStarBtnClicked();
 signals:
 	void imageLiked(int image_index);
 	void imageUnLiked(int image_index);
+	void imageStared(int image_index);
+	void imageUnStared(int image_index);
 protected:
 	void paintEvent(QPaintEvent* event) override;
 private:
@@ -50,6 +53,7 @@ private:
 	QTextEdit* m_imageDesc{};
 
 	QPushButton* m_likeBtn{};
+	QPushButton* m_starBtn{};
 };
 
 class TopWidget : public QWidget

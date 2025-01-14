@@ -852,24 +852,27 @@ void Server::route_userImage()
 		}
 
 
-		QList<int> image_like;
 		QJsonArray jarray;
-		SSqlConnectionWrap wrap2;
+		SSqlConnectionWrap wrap2,wrap3;
 		QSqlQuery query_everyImage_likes(wrap2.openConnection());
+		QSqlQuery query_everyImage_stars(wrap3.openConnection());
 		int i = 0;
 		while (query.next()) {
 			auto image_id = query.value("image_id").toInt(); //获取每张图片id
-			query_everyImage_likes.prepare(QString("SELECT COUNT(*) as sum FROM image_like WHERE image_id=%1").arg(image_id)); //统计每一张图片的点赞数
+			query_everyImage_likes.prepare(QString("SELECT COUNT(*) as sum_likes FROM image_like WHERE image_id=%1").arg(image_id)); //统计每一张图片的点赞数
+			query_everyImage_stars.prepare(QString("SELECT COUNT(*) as sum_stars FROM image_star WHERE image_id=%1").arg(image_id)); //统计每一张图片的收藏数
 			//统计图片点赞数（还可以获取所有点赞的用户，以后可以增加一个开通vip可查看的功能）
-			if (!query_everyImage_likes.exec()) {
+			if (!query_everyImage_likes.exec()  || !query_everyImage_stars.exec()) {
 				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 				return;
 			}
 #if _DEBUG	
 			qDebug() << query_everyImage_likes.lastQuery();
+			qDebug() << query_everyImage_stars.lastQuery();
 #endif
 			query_everyImage_likes.next();
-		
+			query_everyImage_stars.next();
+	
 			QJsonObject jobj;
 			jobj.insert("image_id", image_id);
 			jobj.insert("owner_id", query.value("owner_id").toInt());
@@ -884,7 +887,8 @@ void Server::route_userImage()
 			jobj.insert("image_quality", query.value("image_quality").toString());
 			jobj.insert("upload_time", query.value("upload_time").toString());
 			jobj.insert("description", query.value("description").toString());
-			jobj.insert("like_count", query_everyImage_likes.value("sum").toInt());
+			jobj.insert("like_count", query_everyImage_likes.value("sum_likes").toInt());
+			jobj.insert("star_count", query_everyImage_stars.value("sum_stars").toInt());
 			jarray.append(jobj);
 		}
 
@@ -989,6 +993,99 @@ void Server::route_userImage()
 		}
 
 		return SResult::success(SResultCode::ImageUnliked);
+		});
+
+	//用户图片收藏：POST
+	m_server.route("/api/user/star_image", QHttpServerRequest::Method::Post, [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("user_id").isEmpty() || uquery.queryItemValue("image_id").isEmpty()) {
+			return SResult::error(SResultCode::ParamMissing);
+		}
+
+		auto user_id = uquery.queryItemValue("user_id");
+		auto image_id = uquery.queryItemValue("image_id");
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		//首先查询收藏是否已经存在
+		query.prepare(QString("SELECT * FROM image_star WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+		if (query.next()) {
+			//已经收藏过了，取消收藏
+			query.prepare(QString("DELETE FROM image_star WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
+			if (!query.exec()) {
+				return SResult::error(SResultCode::ServerSqlQueryError);
+			}
+			CheckSqlQuery(query);
+#if _DEBUG
+			qDebug() << "用户取消图片收藏";
+			qDebug() << query.lastQuery();
+#endif
+			return SResult::success(SResultCode::ImageUnStared);
+		}
+
+		query.prepare(QString("INSERT IGNORE INTO image_star(user_id, image_id, star_time) VALUES (%1,%2,'%3')")
+			.arg(user_id.toInt())
+			.arg(image_id.toInt())
+			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")));
+
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+
+		CheckSqlQuery(query);
+
+#if _DEBUG
+		qDebug() << "用户图片收藏";
+		qDebug() << query.lastQuery();
+#endif
+
+		//检查是否插入成功
+		if (query.numRowsAffected() == 0) {
+			return SResult::error(SResultCode::ImageStaredError);
+		}
+
+		return SResult::success(SResultCode::ImageStared);
+		});
+
+	//检查用户是否收藏过图片：GET
+	m_server.route("/api/user/star_image", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("user_id").isEmpty() || uquery.queryItemValue("image_id").isEmpty()) {
+			return SResult::error(SResultCode::ParamMissing);
+		}
+
+		auto user_id = uquery.queryItemValue("user_id");
+		auto image_id = uquery.queryItemValue("image_id");
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		//首先查询点赞是否已经存在
+		query.prepare(QString("SELECT * FROM image_star WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+		if (query.next()) {
+			return SResult::success(SResultCode::ImageStared);
+		}
+
+		return SResult::success(SResultCode::ImageUnStared);
 		});
 }
 

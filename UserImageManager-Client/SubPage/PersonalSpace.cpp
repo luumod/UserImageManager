@@ -97,6 +97,12 @@ void PersonalSpace::onClickedOneImage(int id) {
 		connect(m_imageDetailPage, &ImageDetailPage::imageUnLiked, this, [=](int image_index) {
 			m_imagesInfoMap[image_index].m_likeCount--;
 			});
+		connect(m_imageDetailPage, &ImageDetailPage::imageStared, this, [=](int image_index) {
+			m_imagesInfoMap[image_index].m_starCount++;
+			});
+		connect(m_imageDetailPage, &ImageDetailPage::imageUnStared, this, [=](int image_index) {
+			m_imagesInfoMap[image_index].m_starCount--;
+			});
 		connect(m_imageDetailPage, &ImageDetailPage::nextImage, this, &PersonalSpace::onClickedOneImage);
 		connect(m_imageDetailPage, &ImageDetailPage::prevImage, this, &PersonalSpace::onClickedOneImage);
 	}
@@ -173,7 +179,8 @@ void PersonalSpace::loadImage(const QJsonArray& imagesArray)
 				, image["image_quality"].toString()
 				, image["upload_time"].toString()
 				, image["description"].toString()
-				, image["like_count"].toInt()));
+				, image["like_count"].toInt()
+				, image["star_count"].toInt()));
 	}
 }
 

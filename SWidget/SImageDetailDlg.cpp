@@ -54,15 +54,14 @@ void SImageDetailDlg::init()
 	auto loveLayout = new QHBoxLayout;
 	m_likeBtn = new QPushButton("👍赞(33)");
 	auto downloadBtn = new QPushButton("📄下载(19)");
-	auto starBtn = new QPushButton("🌟收藏(32)");
+	m_starBtn = new QPushButton("🌟收藏(32)");
 	connect(m_likeBtn, &QPushButton::clicked, this, &SImageDetailDlg::onLikeBtnClicked);
 	connect(downloadBtn, &QPushButton::clicked, [=]() {
 		qDebug() << "downloadBtn clicked"; });
-	connect(starBtn, &QPushButton::clicked, [=]() {
-		qDebug() << "starBtn clicked"; });
+	connect(m_starBtn, &QPushButton::clicked, this, &SImageDetailDlg::onStarBtnClicked);
 	loveLayout->addWidget(m_likeBtn);
 	loveLayout->addWidget(downloadBtn);
-	loveLayout->addWidget(starBtn);
+	loveLayout->addWidget(m_starBtn);
 
 	auto loveWidget = new QWidget;
 	loveWidget->setFixedWidth(m_imageLabel->width());
@@ -235,6 +234,27 @@ void SImageDetailDlg::updateUi()
 		}
 			})
 		.get();
+
+	//收藏数
+	SHttpClient(URL("/api/user/star_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+		auto json = QJsonDocument::fromJson(data).object();
+		if (json["code"].toInt() < 1000) {
+			if (json["code"].toInt() == SResultCode::ImageStared.code) {
+				//已经收藏了，显示取消收藏按钮
+				m_starBtn->setText(QString("👍取消收藏(%1)").arg(m_imageInfo.m_starCount));
+			}
+			else if (json["code"].toInt() == SResultCode::ImageUnStared.code) {
+				//已经取消收藏了，显示收藏按钮
+				m_starBtn->setText(QString("👍收藏(%1)").arg(m_imageInfo.m_starCount));
+			}
+		}
+		else {
+			qWarning() << "Failed to star image:" << json["message"].toString();
+		}
+			})
+		.get();
 }
 
 //点赞 - 取消点赞
@@ -262,6 +282,34 @@ void SImageDetailDlg::onLikeBtnClicked()
 				qWarning() << "Failed to like image:" << json["message"].toString();
 			}
 		})
+		.post();
+}
+
+//收藏- 取消收藏
+void SImageDetailDlg::onStarBtnClicked()
+{
+	SHttpClient(URL("/api/user/star_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+		auto json = QJsonDocument::fromJson(data).object();
+		if (json["code"].toInt() < 1000) {
+			if (json["code"].toInt() == SResultCode::ImageStared.code) {
+				//收藏成功
+				m_imageInfo.m_starCount++;
+				m_starBtn->setText(QString("👍取消收藏(%1)").arg(m_imageInfo.m_starCount));
+				emit imageStared(m_currentImageIndex);
+			}
+			else if (json["code"].toInt() == SResultCode::ImageUnStared.code) {
+				//取消收藏成功
+				m_imageInfo.m_starCount--;
+				m_starBtn->setText(QString("👍收藏(%1)").arg(m_imageInfo.m_starCount));
+				emit imageUnStared(m_currentImageIndex);
+			}
+		}
+		else {
+			qWarning() << "Failed to star image:" << json["message"].toString();
+		}
+			})
 		.post();
 }
 
