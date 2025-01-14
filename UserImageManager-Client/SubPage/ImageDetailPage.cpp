@@ -1,10 +1,12 @@
 ﻿#include "ImageDetailPage.h"
 #include "SImageDetailDlg.h"
+#include "SCommentDlg.h"
 #include <QPushButton>
 #include <QBoxLayout>
+#include <QScrollArea>
 
 ImageDetailPage::ImageDetailPage(QWidget* parent)
-	: QScrollArea(parent)
+	: QWidget(parent)
 {
 	init();
 	this->setStyleSheet("QScrollArea{border: 0px solid;} \
@@ -20,6 +22,15 @@ ImageDetailPage::~ImageDetailPage()
 
 void ImageDetailPage::init()
 {
+	auto mainLayout = new QVBoxLayout;
+
+	auto scrollArea = new QScrollArea;
+	scrollArea->setWidgetResizable(true);
+	scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+	
+	auto widget = new QWidget;
 	auto layout1 = new QVBoxLayout;
 
 	//顶端（返回 + 下一张，上一张）
@@ -52,11 +63,24 @@ void ImageDetailPage::init()
 	middleLayout->addStretch();
 
 	//底部（评论区）
+	m_commentDlg = new SCommentDlg;
+
 	layout1->addWidget(topWidget);
 	layout1->addLayout(middleLayout);
-	layout1->addStretch();
+	layout1->addWidget(m_commentDlg);
 	
-	this->setLayout(layout1);
+	widget->setLayout(layout1);
+
+	//滚动
+	scrollArea->setWidget(widget);
+
+	mainLayout->addWidget(scrollArea);
+	this->setLayout(mainLayout);
+	
+
+
+
+
 
 	connect(backBtn, &QPushButton::clicked, this, [=]() {
 		this->close();

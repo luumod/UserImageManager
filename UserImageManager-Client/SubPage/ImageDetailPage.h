@@ -1,11 +1,12 @@
 ﻿#ifndef IMAGEDETAILPAGE_H
 #define IMAGEDETAILPAGE_H
 
-#include <QScrollArea>
+#include <QWidget>
 #include "SImageInfo.h"
 
 class SImageDetailDlg;
-class ImageDetailPage :public QScrollArea
+class SCommentDlg;
+class ImageDetailPage :public QWidget
 {
 	Q_OBJECT
 public:
@@ -24,6 +25,7 @@ signals:
 	void imageDownloaded(int image_index);
 public:
 	SImageDetailDlg* m_imageDetailDlg{};
+	SCommentDlg* m_commentDlg{};
 };
 
 
