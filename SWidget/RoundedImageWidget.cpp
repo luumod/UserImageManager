@@ -57,22 +57,25 @@ bool RoundedImageWidget::isNull() const
 
 void RoundedImageWidget::setImagePath(const QString& filePath)
 {
+	if (filePath.isEmpty()) { //仅当有图片时，光标才会变成手型
+		setCursor(Qt::ArrowCursor);
+		m_pixmapLab->clear();
+		return;
+	}
+	setCursor(Qt::PointingHandCursor);
 	m_filePath = filePath;
 	m_pixmapLab->setPixmap(QPixmap(m_filePath));
 }
 
 void RoundedImageWidget::mouseMoveEvent(QMouseEvent* event)
-{
-	//鼠标光标变样式
-	setCursor(Qt::PointingHandCursor);
-  
+{	
 	QWidget::mouseMoveEvent(event);
 }
 
 void RoundedImageWidget::mousePressEvent(QMouseEvent* event)
 {
 	//鼠标左键点击事件
-	if (event->button() == Qt::LeftButton) {
+	if (event->button() == Qt::LeftButton && !m_pixmapLab->pixmap().isNull()) {
 		emit clickedImage(m_id);
 	}
 }

@@ -208,9 +208,15 @@ void PersonalSpace::parseJson()
 {
 	for (int i = m_firstImageIndex, j = 0; i <= m_lastImageIndex; i++, j++) { //[0-5] [6-11] [...]
 		//加载每一张图片
-		m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].m_path
-			, m_imagesInfoMap[i].m_name
-			, m_imagesInfoMap[i].m_desc);
+		if (i >= m_imagesInfoMap.size()) {
+			m_images[j]->loadImage("", "", "");
+		}
+		else {
+			m_images[j]->loadImage(QDir::currentPath() + "/" + m_imagesInfoMap[i].m_path
+				, m_imagesInfoMap[i].m_name
+				, m_imagesInfoMap[i].m_desc);
+		}
+		
 	} //(F:/code/UserImageManager/bin)  /  (../images/upload/1/1173012900_20250109145406_test1.jpg)
 }
 
