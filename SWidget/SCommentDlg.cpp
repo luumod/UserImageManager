@@ -158,8 +158,23 @@ void SCommentDlg::deleteComment(int comment_id) {
 
 void SCommentDlg::topComment(int comment_id)
 {
-	m_bottomLayout->removeWidget(m_userCommentMap[comment_id]);
-	m_bottomLayout->insertWidget(0, m_userCommentMap[comment_id]);
+
+	SHttpClient(URL("/api/user/top_comment?owner_id=" + sApp->userData("user/id").toString() + "&comment_id=" + QString::number(comment_id))).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+		QJsonParseError error;
+		auto jdom = QJsonDocument::fromJson(data, &error);
+		if (error.error != QJsonParseError::NoError) {
+			qWarning() << "Json解析错误: " << error.errorString();
+			return;
+		}
+		if (jdom["code"].toInt() < 1000) {
+			//置顶成功，更新布局
+			m_bottomLayout->removeWidget(m_userCommentMap[comment_id]);
+			m_bottomLayout->insertWidget(0, m_userCommentMap[comment_id]);
+		}
+			})
+		.post(); // 发送post请求
 }
 
 void SCommentDlg::addUserComment(int comment_id, const QString& userName, const QString& userAvatar, const QString& comment_conetent, const QString& time)
