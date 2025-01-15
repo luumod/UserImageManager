@@ -6,19 +6,27 @@
 #include <QTextEdit>
 #include <QPixmap>
 
-SUserComment::SUserComment(int comment_id, const QString& userName, const QString& avatarPath, const QString& comment_content, const QString& commentTime, QWidget* parent)
+SUserComment::SUserComment(int comment_id, const QString& userName, const QString& avatarPath, const QString& comment_content, const QString& commentTime, bool isTop, QWidget* parent)
 	: QWidget(parent)
 	, m_comment_id(comment_id)
 	, m_userName(userName)
 	, m_avatarPath(avatarPath)
 	, m_comment(comment_content)
 	, m_commentTime(commentTime)
+	, m_isTop(isTop)
 {
 	this->setFixedSize(1400, 140);
 	init();
-	this->setStyleSheet("\
+	if (m_isTop) {
+		this->setStyleSheet("\
+         QTextEdit{font-size: 22px; font-weight: bold; font-family: 微软雅黑; border: 3px solid red; background-color: transparent;} \
+		");
+	}
+	else {
+		this->setStyleSheet("\
          QTextEdit{font-size: 18px; font-family: 微软雅黑; border: 3px solid rgb(232,231,232); background-color: transparent;} \
 		");
+	}
 }
 
 SUserComment::~SUserComment(){

@@ -16,7 +16,7 @@ public:
 	~SCommentDlg();
 
 	void init();
-	void addUserComment(int comment_id, const QString& userName, const QString& userAvatar, const QString& userComment, const QString& time);
+	void addUserComment(int comment_id, const QString& userName, const QString& userAvatar, const QString& userComment, const QString& time, int isTop = false);
 	void clearData(int image_id); //传入新的图片id
 public slots:
 	void deleteComment(int comment_id);

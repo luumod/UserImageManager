@@ -177,9 +177,9 @@ void SCommentDlg::topComment(int comment_id)
 		.post(); // 发送post请求
 }
 
-void SCommentDlg::addUserComment(int comment_id, const QString& userName, const QString& userAvatar, const QString& comment_conetent, const QString& time)
+void SCommentDlg::addUserComment(int comment_id, const QString& userName, const QString& userAvatar, const QString& comment_conetent, const QString& time,int isTop)
 {
-	auto cW = new SUserComment(comment_id, userName, userAvatar, comment_conetent, time); //新的评论
+	auto cW = new SUserComment(comment_id, userName, userAvatar, comment_conetent, time,isTop); //新的评论
 	connect(cW, &SUserComment::deleteComment, this, &SCommentDlg::deleteComment); //有必要一个评论连接一个信号？
 	connect(cW, &SUserComment::topComment, this, &SCommentDlg::topComment); //有必要一个评论连接一个信号？
 	m_userCommentMap.insert(comment_id, cW);

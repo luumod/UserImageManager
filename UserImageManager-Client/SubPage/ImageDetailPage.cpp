@@ -140,7 +140,8 @@ void ImageDetailPage::setData(ImageInfo info,int image_index)
 					jUser.value("user_name").toString(),
 					jUser.value("avatar_path").toString().isEmpty() ? "" : QDir::currentPath() + "/" + jUser.value("avatar_path").toString(),
 					jUser.value("comment_content").toString(),
-					jUser.value("comment_time").toString());
+					jUser.value("comment_time").toString(),
+					jUser.value("priority").toInt() == 999);
 			}
 		}
 		})
