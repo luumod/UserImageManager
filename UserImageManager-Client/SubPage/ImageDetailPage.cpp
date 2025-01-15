@@ -132,15 +132,15 @@ void ImageDetailPage::setData(ImageInfo info,int image_index)
 		}
 		if (jdom["code"].toInt() < 1000) {
 			auto jUsers = jdom["data"]["users"].toArray();
-			m_commentDlg->clearData();
+			m_commentDlg->clearData(info.m_id);
 			for (int i = 0; i < jUsers.size(); i++) {
 				auto jUser = jUsers.at(i).toObject();
-				m_commentDlg->setData(
+				m_commentDlg->addUserComment(
+					jUser.value("comment_id").toInt(),
 					jUser.value("user_name").toString(),
 					jUser.value("avatar_path").toString().isEmpty() ? "" : QDir::currentPath() + "/" + jUser.value("avatar_path").toString(),
 					jUser.value("comment_content").toString(),
-					jUser.value("comment_time").toString()
-					);
+					jUser.value("comment_time").toString());
 			}
 		}
 		})

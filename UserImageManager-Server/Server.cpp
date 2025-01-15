@@ -1187,7 +1187,9 @@ void Server::route_userImage()
 			return SResult::error(SResultCode::ImageCommentError);
 		}
 
-		return SResult::success(SResultCode::ImageCommented);
+		auto comment_id = query.lastInsertId().toInt(); //获取刚插入的评论id
+
+		return SResult::success({ {"comment_id",comment_id} });
 		});
 	
 	//获取某个图片的全部评论，以及对应的所有评论者信息：GET
@@ -1208,7 +1210,7 @@ void Server::route_userImage()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT user_id,comment_content,comment_time FROM image_comment WHERE image_id=%1 AND isDeleted=false")
+		query.prepare(QString("SELECT comment_id,user_id,comment_content,comment_time FROM image_comment WHERE image_id=%1 AND isDeleted=false")
 			.arg(image_id));
 		if (!query.exec()) {
 			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
@@ -1219,11 +1221,11 @@ void Server::route_userImage()
 		QSqlQuery query_user_info(wrap2.openConnection());
 		int i = 0;
 		while (query.next()) {
+			auto comment_id = query.value("comment_id").toInt(); //获取每个评论对应的用户id
 			auto user_id = query.value("user_id").toInt(); //获取每个评论对应的用户id
 			auto comment_content = query.value("comment_content").toString(); //获取每个评论对应的内容
 			auto comment_time = query.value("comment_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss"); //获取每个评论的时间
-			query_user_info.prepare(QString("SELECT user_name,avatar_path FROM user_info WHERE id=%1").arg(user_id)); //获取评论者的信息
-			//统计图片点赞数（还可以获取所有点赞的用户，以后可以增加一个开通vip可查看的功能）
+			query_user_info.prepare(QString("SELECT user_name,avatar_path FROM user_info WHERE id=%1").arg(user_id)); //获取评论者的重要信息
 			if (!query_user_info.exec()) {
 				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 				return;
@@ -1234,6 +1236,7 @@ void Server::route_userImage()
 			query_user_info.next();
 
 			QJsonObject jobj;
+			jobj.insert("comment_id", comment_id);
 			jobj.insert("comment_content", comment_content);
 			jobj.insert("comment_time", comment_time);
 			jobj.insert("user_name", query_user_info.value("user_name").toString());
@@ -1251,5 +1254,62 @@ void Server::route_userImage()
 		responder.write(SResult::success(jobj), "application/json");
 		});
 
+	//图片所有者可以删除某一条评论：POST
+	m_server.route("/api/user/delete_comment", QHttpServerRequest::Method::Post, [](const QHttpServerRequest& request) {
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			return token.value();
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("owner_id").isEmpty()) {
+			return SResult::error(SResultCode::ParamMissing);
+		}
+
+		auto delete_comment_user_id = uquery.queryItemValue("owner_id").toInt();//执行删除操作的用户id
+		auto comment_id = uquery.queryItemValue("comment_id").toInt();
+	
+		//根据评论id来找到对应的图片id
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		query.prepare(QString("SELECT image_id FROM image_comment WHERE comment_id=%1").arg(comment_id));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+#if _DEBUG
+		qDebug() << query.lastQuery();
+#endif
+		query.next();
+		auto image_id = query.value("image_id").toInt(); 
+
+		//根据图片id来获得图片的所有者
+		query.prepare(QString("SELECT owner_id FROM user_image WHERE image_id=%1").arg(image_id));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query);
+#if _DEBUG
+		qDebug() << query.lastQuery();
+#endif
+		query.next();
+		if (delete_comment_user_id != query.value("owner_id").toInt()) {
+			//不是图片的所有者，不能删除评论
+			return SResult::error(SResultCode::UserAuthForbidden);
+		}
+
+		//删除评论
+		query.prepare(QString("UPDATE image_comment SET isDeleted=1 WHERE comment_id=%1").arg(comment_id));
+		if (!query.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+#if _DEBUG
+		qDebug() << query.lastQuery();
+#endif
+		CheckSqlQuery(query);
+
+		return SResult::success();
+		});
 }
 

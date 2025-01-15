@@ -2,7 +2,7 @@
 #define  SCOMMENTDLG_H_
 
 #include <QWidget>
-#include <QList>
+#include <QMap>
 
 class CommentTopWidget;
 class SUserComment;
@@ -16,12 +16,16 @@ public:
 	~SCommentDlg();
 
 	void init();
-	void addUserComment(SUserComment* userComment);
-	void setData(const QString& userName, const QString& userAvatar, const QString& userComment,const QString& time);
-	void clearData();
+	void addUserComment(int comment_id, const QString& userName, const QString& userAvatar, const QString& userComment, const QString& time);
+	void clearData(int image_id); //传入新的图片id
+public slots:
+	void deleteComment(int comment_id);
+	void topComment(int comment_id);
 private:
 	CommentTopWidget* m_topWidget{};
-	QList<SUserComment*> m_userComments;
+	QMap<int, SUserComment*> m_userCommentMap;
+
+	int m_image_id;
 
 	QVBoxLayout* m_bottomLayout{}; //评论区
 };

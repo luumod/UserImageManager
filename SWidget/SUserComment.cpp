@@ -6,11 +6,12 @@
 #include <QTextEdit>
 #include <QPixmap>
 
-SUserComment::SUserComment(const QString& avatarPath, const QString& userName, const QString& comment, const QString& commentTime, QWidget* parent)
+SUserComment::SUserComment(int comment_id, const QString& userName, const QString& avatarPath, const QString& comment_content, const QString& commentTime, QWidget* parent)
 	: QWidget(parent)
-	, m_avatarPath(avatarPath)
+	, m_comment_id(comment_id)
 	, m_userName(userName)
-	, m_comment(comment)
+	, m_avatarPath(avatarPath)
+	, m_comment(comment_content)
 	, m_commentTime(commentTime)
 {
 	this->setFixedSize(1400, 140);
@@ -64,10 +65,12 @@ void SUserComment::init()
 	//右侧：删除 + 回复
 	auto rightLayout = new QVBoxLayout;
 	auto deleteButton = new QPushButton("删除");
-	auto replyButton = new QPushButton("回复");
+	auto setTopButton = new QPushButton("置顶");
+	connect(deleteButton, &QPushButton::clicked, this, [=]() {emit deleteComment(m_comment_id); });
+	connect(setTopButton, &QPushButton::clicked, this, [=]() {emit topComment(m_comment_id); });
 
 	rightLayout->addWidget(deleteButton);
-	rightLayout->addWidget(replyButton);
+	rightLayout->addWidget(setTopButton);
 
 	//主布局
 	mainLayout->addLayout(leftLayout);

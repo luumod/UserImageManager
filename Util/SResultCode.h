@@ -61,6 +61,7 @@ public:
 	CODE(ImageLikedError, 3011, "点赞失败");
 	CODE(ImageStaredError, 3012, "收藏失败");
 	CODE(ImageCommentError, 3013, "评论失败");
+	CODE(ImageNotFound, 3014, "图片不存在");
 #undef CODE
 
 	friend class SResult;
