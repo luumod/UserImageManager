@@ -51,7 +51,8 @@ void SImageInfoWidget::init()
 	auto middleLeftLayout = new QVBoxLayout;
 	m_imageLabel = new QLabel;
 	m_imageLabel->setFixedSize(500, 500);
-	m_imageLabel->setScaledContents(true);
+	m_imageLabel->setAlignment(Qt::AlignCenter);
+	//m_imageLabel->setScaledContents(true);
 
 	auto loveLayout = new QHBoxLayout;
 	m_likeBtn = new QPushButton("👍赞(33)");
@@ -215,7 +216,7 @@ void SImageInfoWidget::updateUi()
 	//图片介绍
 	m_imageDesc->setText(m_imageInfo.m_desc);
 	//加载图片
-	m_imageLabel->setPixmap(QPixmap::fromImage(QImage(imageFile.fileName())));
+	m_imageLabel->setPixmap(QPixmap::fromImage(QImage(imageFile.fileName())).scaled(m_imageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 
 	//获取点赞数，同时判断当前用户是否点赞
 	SHttpClient(URL("/api/user/like_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)

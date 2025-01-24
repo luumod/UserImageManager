@@ -19,6 +19,7 @@ public:
 	void init();
 	bool isNull()const;
 	void setImagePath(const QString& filePath);
+
 signals:
 	void clickedImage(int id);
 protected:

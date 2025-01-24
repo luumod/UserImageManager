@@ -8,9 +8,6 @@
 #include <QDir>
 #include <QAbstractItemView>
 
-#define IMAGE_WIDTH 100
-#define IMAGE_HEIGHT 100
-
 SImageDelegate::SImageDelegate(QObject* parent)
 	: QStyledItemDelegate(parent)
 {
@@ -24,8 +21,8 @@ void SImageDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option
 	auto pixmap = QPixmap(QDir::currentPath() + "/" + relPath);
 	painter->setRenderHint(QPainter::SmoothPixmapTransform);
 
-	painter->drawPixmap(option.rect.x() + (option.rect.width() - IMAGE_WIDTH) / 2, option.rect.y() + (option.rect.height() - IMAGE_HEIGHT) / 2, IMAGE_WIDTH, IMAGE_HEIGHT, pixmap);
-
+	QPixmap scaledPixmap = pixmap.scaled(option.rect.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	painter->drawPixmap(option.rect.x() + (option.rect.width() - scaledPixmap.width()) / 2, option.rect.y() + (option.rect.height() - scaledPixmap.height()) / 2, scaledPixmap);
 	painter->restore();
 }
 

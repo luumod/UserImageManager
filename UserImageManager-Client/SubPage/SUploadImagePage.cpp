@@ -70,8 +70,8 @@ void SUploadImagePage::init()
 	m_previewImage->setFixedSize(300, 300);
 	m_previewImage->setText("图片预览");
 	m_previewImage->setAlignment(Qt::AlignCenter);
-	m_previewImage->setStyleSheet("background-color: #DBDBDB; border-radius: 15px; border: 1px solid #DEDEDE;");
-	m_previewImage->setScaledContents(true);
+	m_previewImage->setStyleSheet("background-color: transparent; border-radius: 15px; border: 1px solid #DEDEDE;");
+	//m_previewImage->setScaledContents(true);
 	middleLayout->addWidget(uploadBtn);
 	middleLayout->addWidget(m_previewImage);
 	//-------------------------------------------
@@ -262,7 +262,8 @@ QString SUploadImagePage::uploadImage() {
 		return QString();
 	}
 
-	m_previewImage->setPixmap(filename); 
+	m_previewImage->setPixmap(QPixmap(filename).scaled(m_previewImage->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
 	return filename; //成功加载图片
 }
 

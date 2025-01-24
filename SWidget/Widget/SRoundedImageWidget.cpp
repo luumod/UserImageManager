@@ -38,10 +38,11 @@ void SRoundedImageWidget::init()
 	m_pixmapLab = new QLabel;
 	m_pixmapLab->setMargin(0);
 	m_pixmapLab->setFixedSize(250, 220);
+	m_pixmapLab->setAlignment(Qt::AlignCenter);
 	QPainterPath path;
 	path.addRoundedRect(m_pixmapLab->rect(), 30, 30);
 	m_pixmapLab->setMask(QRegion(path.toFillPolygon().toPolygon()));
-	m_pixmapLab->setScaledContents(true);
+	//m_pixmapLab->setScaledContents(true);
 
 	mainLayout->addWidget(m_pixmapLab);
 
@@ -62,7 +63,8 @@ void SRoundedImageWidget::setImagePath(const QString& filePath)
 	}
 	setCursor(Qt::PointingHandCursor);
 	m_filePath = filePath;
-	m_pixmapLab->setPixmap(QPixmap(m_filePath));
+	
+	m_pixmapLab->setPixmap(QPixmap(m_filePath).scaled(m_pixmapLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
 void SRoundedImageWidget::mouseMoveEvent(QMouseEvent* event)

@@ -61,26 +61,32 @@ void SImagesJointWidget::init()
 
 	auto lab1 = new QLabel;
 	lab1->setPixmap(QPixmap(imagePaths[0]));
+	lab1->setScaledContents(true);
 
 	auto lab2 = new QLabel;
 	lab2->setPixmap(QPixmap(imagePaths[1]));
+	lab2->setScaledContents(true);
 
 	auto lab3 = new QLabel;
 	lab3->setPixmap(QPixmap(imagePaths[2]));
+	lab3->setScaledContents(true);
 
 	auto lab4 = new QLabel;
 	lab4->setPixmap(QPixmap(imagePaths[3]));
 
 	auto lab5 = new QLabel;
 	lab5->setPixmap(QPixmap(imagePaths[4]));
+	lab5->setScaledContents(true);
 
 	auto lab6 = new QLabel;
 	lab6->setPixmap(QPixmap(imagePaths[5]));
+	lab6->setScaledContents(true);
 
 	auto lab7 = new QLabel;
 	lab7->setPixmap(QPixmap(imagePaths[6]));
+	lab7->setScaledContents(true);
 
-	grid_layout->addWidget(lab1, 0, 0, 5, 6,Qt::AlignCenter);
+	grid_layout->addWidget(lab1, 0, 0, 5, 6);
 	grid_layout->addWidget(lab2, 0, 6, 3, 3);
 	grid_layout->addWidget(lab3, 0, 9, 3, 3);
 	grid_layout->addWidget(lab4, 3, 6, 2, 6);
