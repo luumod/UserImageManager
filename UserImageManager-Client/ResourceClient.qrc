@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/">
+        <file>ResourceClient/privilege.png</file>
+        <file>ResourceClient/privilege_header.png</file>
+        <file>ResourceClient/role.png</file>
+        <file>ResourceClient/sytle.css</file>
+        <file>ResourceClient/default_avatar.png</file>
+        <file>ResourceClient/next.png</file>
+        <file>ResourceClient/pre.png</file>
+        <file>ResourceClient/create.png</file>
+        <file>ResourceClient/open.png</file>
+        <file>ResourceClient/back.png</file>
+        <file>ResourceClient/bilibili.png</file>
+        <file>ResourceClient/book.png</file>
+        <file>ResourceClient/box.png</file>
+        <file>ResourceClient/cangku.png</file>
+        <file>ResourceClient/community.png</file>
+        <file>ResourceClient/dog.png</file>
+        <file>ResourceClient/email.png</file>
+        <file>ResourceClient/github.png</file>
+        <file>ResourceClient/home.png</file>
+        <file>ResourceClient/imageManager.png</file>
+        <file>ResourceClient/upload.png</file>
+        <file>ResourceClient/userManager.png</file>
+        <file>ResourceClient/user.png</file>
+        <file>ResourceClient/jiagong.png</file>
+    </qresource>
+</RCC>

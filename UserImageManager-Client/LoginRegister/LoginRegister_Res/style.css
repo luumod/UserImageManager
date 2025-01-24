@@ -1,0 +1,88 @@
+﻿QPushButton{
+	border: none; 
+}
+
+
+QPushButton#closeBtn {
+	border: none;
+	border-image: url(':/LoginRegister_Res/close.png');
+}
+QPushButton#closeBtn:hover {
+	border: none;
+	border-image: url(':/LoginRegister_Res/close-hover.png');
+}
+
+QLineEdit{
+	border: none;
+	border-bottom: 1px solid rgb(233,233,233);
+	height: 40px;
+	font: normal 12pt '微软雅黑';
+}
+
+QCheckBox {
+	color: rgb(127,127,127)
+}
+
+QCheckBox::indicator:unchecked {
+	border-image: url(':/LoginRegister_Res/uncheck.png');
+}
+
+QCheckBox::indicator:checked {
+	border-image: url(':/LoginRegister_Res/check.png');
+}
+
+QPushButton#registerBtn{
+	color: rgb(127,127,127);
+}
+
+QPushButton#registerBtn:hover{
+	font: bold 13px '微软雅黑';
+}
+
+QPushButton {
+	border: none;
+	color: white;
+	font: normal 10pt '微软雅黑'
+}
+
+QPushButton#loginBtn{
+	background-color: rgb(43,61,82);
+	border-radius: 15px;
+	height: 40px;
+	width: 80px;
+	font: normal 13px '微软雅黑'
+}
+
+QPushButton#loginBtn:hover {
+	border: none;
+	background-color: rgb(99,133,173);
+}
+
+
+/*注册界面*/
+QPushButton#registerComfirmBtn {
+	border-top-left-radius: 15px;
+	border-bottom-left-radius: 15px;
+	background-color: #ED574C;
+	height: 40px;
+	width: 120px;
+}
+
+QPushButton#registerComfirmBtn:hover {
+	background-color: red;
+	font-size: 11pt;
+}
+
+
+QPushButton#backBtn {
+	border-top-right-radius: 15px;
+	border-bottom-right-radius: 15px;
+	background-color: #2B3D52;
+	height: 40px;
+	width: 81px;
+}
+
+QPushButton#backBtn:hover {
+	background-color: #6385AD;
+	font-size: 11pt;
+}

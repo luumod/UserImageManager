@@ -1,0 +1,37 @@
+﻿QTreeView {
+    /*alternate-background-color: rgb(57, 61, 72);*/
+    background-color: rgb(57, 61, 72);
+    show-decoration-selected: 1; /*设计item一行中的branch和item为一个整体，默认为0*/
+    font: normal 13pt "微软雅黑";
+}
+
+QTreeView QHeaderView::section {
+    border: none;
+    background-color:rgb(57, 61, 72);
+    font: normal 15pt "微软雅黑";
+    color:white;
+}
+QTreeView::item {
+    border: none;
+    height: 50px;
+    color:white;
+}
+
+/*--鼠标悬停*/
+QTreeView::item:hover,
+QTreeView::branch:hover {
+    background-color: rgb(104,104,104);
+}
+
+/*--选中item时，item和前面的branch显示一样的颜色*/
+QTreeView::item:selected,
+QTreeView::branch:selected {
+    background-color: rgb(123,123,123);
+}
+
+/*--鼠标悬停，并选中*/
+QTreeView::item:selected:hover,
+QTreeView::branch:selected:hover {
+    background-color: rgb(104,104,104);
+}
+
