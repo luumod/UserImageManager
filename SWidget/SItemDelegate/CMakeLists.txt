@@ -17,6 +17,6 @@ list(APPEND SRC_FILES ${SITEMDELEGATE_CPP} ${SITEMDELEGATE_H})
 
 add_library(${PROJECT_NAME} STATIC ${SRC_FILES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Util)
  
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

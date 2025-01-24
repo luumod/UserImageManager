@@ -2,6 +2,8 @@
 #include "SApp.h"
 #include "SHttpClient.h"
 #include "SResultCode.h"
+#include "SImage.h"
+#include "STimer.h"
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QBoxLayout>
@@ -215,8 +217,8 @@ void SImageInfoWidget::updateUi()
 	m_imageDate->setText(m_imageInfo.m_upload_time);
 	//图片介绍
 	m_imageDesc->setText(m_imageInfo.m_desc);
-	//加载图片
-	m_imageLabel->setPixmap(QPixmap::fromImage(QImage(imageFile.fileName())).scaled(m_imageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	//加载图片（异步加载）
+	SImage::loadAndCropImage(path, m_imageLabel);
 
 	//获取点赞数，同时判断当前用户是否点赞
 	SHttpClient(URL("/api/user/like_image?image_id=" + QString::number(m_imageInfo.m_id) + "&user_id=" + sApp->userData("user/id").toString())).debug(true)

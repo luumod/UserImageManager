@@ -1,4 +1,5 @@
 ﻿#include "SDisplayImageWidget.h"
+#include "SImage.h"
 #include <QGraphicsDropShadowEffect>
 #include <QPainter>
 #include <QPainterPath>
@@ -42,10 +43,10 @@ void SDisplayImageWidget::init()
 	m_pixmapLab = new QLabel;
 	m_pixmapLab->setMargin(0);
 	m_pixmapLab->setFixedSize(250, 220);
+	m_pixmapLab->setAlignment(Qt::AlignCenter);
 	QPainterPath path;
 	path.addRoundedRect(m_pixmapLab->rect(), 30, 30);
 	m_pixmapLab->setMask(QRegion(path.toFillPolygon().toPolygon()));
-	m_pixmapLab->setScaledContents(true);
 	//---------------------------
 
 	//---------图片信息----------
@@ -92,9 +93,9 @@ void SDisplayImageWidget::setImagePath(const QString& filePath)
 	}
 	setCursor(Qt::PointingHandCursor);
 	m_imagePath = filePath;
-	QPixmap pixmap(m_imagePath);
-	pixmap.scaled(m_pixmapLab->size(), Qt::KeepAspectRatio);
-	m_pixmapLab->setPixmap(pixmap);
+
+	//异步加载图片
+	SImage::loadAndCropImage(m_imagePath, m_pixmapLab);
 }
 
 void SDisplayImageWidget::mousePressEvent(QMouseEvent* event)

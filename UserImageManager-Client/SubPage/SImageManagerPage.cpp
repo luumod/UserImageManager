@@ -486,7 +486,7 @@ void SImageManagerPage::showPage()
 
 void SImageManagerPage::parseJson(const QJsonObject& obj)
 {
-	m_model->clear();
+	m_model->clear(); //item会被清除
 
 	for (int i = 0; i < m_fieldName.size(); i++) {
 		//获取user组下的字段名

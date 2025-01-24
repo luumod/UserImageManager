@@ -1,5 +1,6 @@
 ﻿#include "SRoundedImageWidget.h"
 #include "SImageShowWidget.h"
+#include "SImage.h"
 #include <QGraphicsDropShadowEffect>
 #include <QPainter>
 #include <QPainterPath>
@@ -63,8 +64,9 @@ void SRoundedImageWidget::setImagePath(const QString& filePath)
 	}
 	setCursor(Qt::PointingHandCursor);
 	m_filePath = filePath;
-	
-	m_pixmapLab->setPixmap(QPixmap(m_filePath).scaled(m_pixmapLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+	//异步加载图片
+	SImage::loadAndCropImage(filePath, m_pixmapLab);
 }
 
 void SRoundedImageWidget::mouseMoveEvent(QMouseEvent* event)

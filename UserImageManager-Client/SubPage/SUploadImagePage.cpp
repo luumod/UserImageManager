@@ -2,6 +2,7 @@
 #include "SRoundedImageWidget.h"
 #include "SHttpClient.h"
 #include "SApp.h"
+#include "SImage.h"
 #include "SBigIconButton.h"
 #include "STextInputEdit.h"
 #include <QVBoxLayout>
@@ -262,7 +263,8 @@ QString SUploadImagePage::uploadImage() {
 		return QString();
 	}
 
-	m_previewImage->setPixmap(QPixmap(filename).scaled(m_previewImage->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	//异步加载图片到预览区
+	SImage::loadAndCropImage(filename, m_previewImage);
 
 	return filename; //成功加载图片
 }
