@@ -81,7 +81,7 @@ void SUploadImagePage::init()
 	auto infoleftLayout = new QGridLayout;
 
 	QHBoxLayout* formLayout_00 = new QHBoxLayout;
-	auto typeLab = new QLabel("图片类型：");
+	auto typeLab = new QLabel("图片标签：");
 	m_typeEdit = new QLineEdit;
 	m_typeEdit->setPlaceholderText("动漫/游戏/生活/其他");
 	formLayout_00->addWidget(typeLab);
@@ -158,6 +158,7 @@ void SUploadImagePage::init()
 
 	QWidget* ownerWidget = new QWidget;
 	QVBoxLayout* vLayout_owner = new QVBoxLayout;
+	vLayout_owner ->setContentsMargins(0, 0, 0, 0);
 	auto ownerLabAvatar = new QLabel;
 	ownerLabAvatar->setAlignment(Qt::AlignCenter);
 	ownerLabAvatar->setPixmap(QPixmap(":/ResourceClient/default_avatar.png"));
@@ -201,13 +202,22 @@ void SUploadImagePage::init()
 	setLayout(m_mainLayout);
 
 	connect(uploadBtn, &SBigIconButton::clicked, this, [=]() {
-		QString filepath = uploadImage(); //返回图片绝对路径
-		if (!filepath.isEmpty()) {
-			update(filepath);
+		QString filepath = uploadImage(); // 返回图片绝对路径
+		try {
+			if (!filepath.isEmpty()) {
+				update(filepath);
+			}
+			else {
+				QMessageBox::warning(this, "失败", "请重新选择图片");
+			}
 		}
-		else {
-			QMessageBox::warning(this, "失败", "请重新选择图片");
+		catch (const std::exception& e) {
+			QMessageBox::critical(this, "错误", QString("发生错误: %1").arg(e.what()));
 		}
+		catch (...) {
+			QMessageBox::critical(this, "错误", "发生未知错误");
+		}
+
 		});
 	connect(okbtn, &QPushButton::clicked, this, [=]() {
 			postImage();
@@ -218,12 +228,12 @@ void SUploadImagePage::update(const QString& filepath)
 {
 	//固定的由文件得到的信息
 	m_fileInfo.setFile(filepath);
-
+	
 	m_titleAbsPath->setText(m_fileInfo.absoluteFilePath());
 	m_nameEdit->setText(m_fileInfo.fileName());
-	m_sizeEdit->setText(QString::number(QFileInfo(filepath).size() / 1024 ) + "KB");
+	m_sizeEdit->setText(QString::number(m_file.size() / 1024 ) + "KB");
 	m_formatEdit->setText(m_fileInfo.suffix());
-	m_resolutionEdit->setText(QString::number(m_previewImage->pixmap().width()) + " x " + QString::number(m_previewImage->pixmap().height()));
+	m_resolutionEdit->setText(QString::number(QImage(filepath).width()) + " x " + QString::number(QImage(filepath).height()));
 	m_uploadTimeEdit->setText(QDateTime::currentDateTime().toString("yyyy年MM月dd日 HH:mm:ss"));
 	//其余信息由用户填写
 }
@@ -244,30 +254,51 @@ void SUploadImagePage::passNecessaryInfo()
 }
 
 QString SUploadImagePage::uploadImage() {
-	auto path = sApp->globalConfig()->value("user/upload_image_path", //默认选择上传文件的路径
-		QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)).toString();
-	auto filename = QFileDialog::getOpenFileName(this, "选择上传图片", path, "images (*.jpg;*.jpeg;*.png)");
-	if (filename.isEmpty())
-		return QString();
-	sApp->globalConfig()->setValue("user/upload_image_path", QFileInfo(filename).canonicalPath());
-	if (m_file.isOpen()) {
-		m_file.close();
-	}
-	m_file.setFileName(filename);
-	if (!m_file.open(QIODevice::ReadOnly)) {
-		QMessageBox::warning(this, "失败", "图片打开失败");
-		return QString();
-	}
-	if (m_file.size() > 3 * 1024 * 1034) {
-		QMessageBox::warning(this, "失败", "请选择3M以内的图片上传");
-		return QString();
-	}
+    // 获取默认上传文件路径
+    auto path = sApp->globalConfig()->value("user/upload_image_path", 
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)).toString();
+    
+    // 弹出文件选择对话框
+    auto filename = QFileDialog::getOpenFileName(this, "选择上传图片", path, "图片文件 (*.jpg *.jpeg *.png *.webp *.bmp *.gif *.svg)");
+    if (filename.isEmpty()) {
+        return QString();
+    }
 
-	//异步加载图片到预览区
-	SImage::loadAndCropImage(filename, m_previewImage);
+    // 检查文件是否可以打开
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "失败", QString("图片打开失败: %1").arg(file.errorString()));
+        return QString();
+    }
 
-	return filename; //成功加载图片
+    // 检查文件大小是否超过限制
+    if (file.size() > 10 * 1024 * 1024) {
+        QMessageBox::warning(this, "失败", QString("请选择10M以内的图片上传，当前图片大小为: %1MB").arg(file.size() / (1024.0 * 1024.0)));
+        file.close();
+        return QString();
+    }
+
+    // 更新全局配置中的文件路径
+    sApp->globalConfig()->setValue("user/upload_image_path", QFileInfo(filename).canonicalPath());
+
+    // 关闭之前打开的文件
+    if (m_file.isOpen()) {
+        m_file.close();
+    }
+
+    // 设置新的文件名并打开文件
+    m_file.setFileName(filename);
+    if (!m_file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "失败", QString("图片打开失败: %1").arg(m_file.errorString()));
+        return QString();
+    }
+
+	//异步加载图片到预览图
+    SImage::loadAndCropImage(filename, m_previewImage);
+
+    return filename; // 成功加载图片，返回图片绝对路径
 }
+
 
 void SUploadImagePage::postImage() {
 	passNecessaryInfo();
