@@ -61,4 +61,9 @@ void SHomePage::init()
 	main_layout->addWidget(scroll_area);
 
 	this->setLayout(main_layout);
+
+	content_layout->update();
+	main_layout->update();
+	this->update();
+	layout()->activate();
 }
