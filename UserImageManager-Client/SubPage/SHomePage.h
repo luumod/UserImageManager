@@ -14,6 +14,8 @@ public:
 
     void init();
 
+protected:
+
 private:
     SDisplayImagesScrollAreaWidget* m_displayWidget{};
     SImagesJointWidget* m_jointWidget{};

@@ -5,7 +5,19 @@
 #include <QPixmap>
 #include <QFile>
 #include <QStylePainter>
+#include <QList>
 #include <QStyleOption>
+
+// 图片路径
+QStringList imagePaths = {
+	"F:/code/UserImageManager/test/uploadImage/y/动漫/暗夜的神秘力量.png",
+	"F:/code/UserImageManager/test/uploadImage/y/动漫/幻彩精灵之韵.png",
+	"F:/code/UserImageManager/test/uploadImage/y/动漫/暮色中的遐思.png",
+	"F:/code/UserImageManager/test/uploadImage/y/动漫/烟雨江南梦.jpg",
+	"F:/code/UserImageManager/test/uploadImage/y/美女/wallhaven-5g2d95_400x800.png",
+	"F:/code/UserImageManager/test/uploadImage/y/美女/wallhaven-jxme8q_500x1000.png",
+	"F:/code/UserImageManager/test/uploadImage/y/动漫/时尚先锋魅力.png",
+};
 
 SImagesJointWidget::SImagesJointWidget(QWidget* parent)
 	: QWidget(parent) 
@@ -31,7 +43,7 @@ SImagesJointWidget::~SImagesJointWidget()
 void SImagesJointWidget::init()
 {
 	auto main_layout = new QVBoxLayout;
-	main_layout->setSpacing(10);
+	//main_layout->setSpacing(10);
 	main_layout->setContentsMargins(10, 10, 10, 10);
 
 
@@ -47,64 +59,35 @@ void SImagesJointWidget::init()
 	title_layout->addStretch();
 	//----------------------------------
 
-	// 图片路径
-	QStringList imagePaths = {
-		"F:/code/UserImageManager/test/uploadImage/y/动漫/暗夜的神秘力量.png",
-		"F:/code/UserImageManager/test/uploadImage/y/动漫/幻彩精灵之韵.png",
-		"F:/code/UserImageManager/test/uploadImage/y/动漫/暮色中的遐思.png",
-		"F:/code/UserImageManager/test/uploadImage/y/动漫/烟雨江南梦.jpg",
-		"F:/code/UserImageManager/test/uploadImage/y/美女/wallhaven-5g2d95_400x800.png",
-		"F:/code/UserImageManager/test/uploadImage/y/美女/wallhaven-jxme8q_500x1000.png",
-		"F:/code/UserImageManager/test/uploadImage/y/动漫/时尚先锋魅力.png",
-	};
+	
 
 	//----------------------------------
-	QGridLayout* grid_layout = new QGridLayout;
+	grid_layout = new QGridLayout;
 	grid_layout->setContentsMargins(0,0,0,0);
 	//grid_layout->setSpacing(20);
 
-	auto lab1 = new QLabel;
-	lab1->setPixmap(QPixmap(imagePaths[0]));
+	for (int i = 0; i < 7; i++) {
+		m_image_labels.append(new QLabel);
+		m_image_labels[i]->setPixmap(QPixmap(imagePaths[i]));
+	}
 
-	auto lab2 = new QLabel;
-	lab2->setPixmap(QPixmap(imagePaths[1]));
+	grid_layout->addWidget(m_image_labels[0], 0, 0, 5, 6);
+	grid_layout->addWidget(m_image_labels[1], 0, 6, 3, 3);
+	grid_layout->addWidget(m_image_labels[2], 0, 9, 3, 3);
+	grid_layout->addWidget(m_image_labels[3], 3, 6, 2, 6);
+	grid_layout->addWidget(m_image_labels[4], 5, 0, 4, 4);
+	grid_layout->addWidget(m_image_labels[5], 5, 4, 4, 4);
+	grid_layout->addWidget(m_image_labels[6], 5, 8, 4, 4);
 
-	auto lab3 = new QLabel;
-	lab3->setPixmap(QPixmap(imagePaths[2]));
-
-	auto lab4 = new QLabel;
-	lab4->setPixmap(QPixmap(imagePaths[3]));
-
-	auto lab5 = new QLabel;
-	lab5->setPixmap(QPixmap(imagePaths[4]));
-
-	auto lab6 = new QLabel;
-	lab6->setPixmap(QPixmap(imagePaths[5]));
-
-	auto lab7 = new QLabel;
-	lab7->setPixmap(QPixmap(imagePaths[6]));
-
-	grid_layout->addWidget(lab1, 0, 0, 5, 6);
-	grid_layout->addWidget(lab2, 0, 6, 3, 3);
-	grid_layout->addWidget(lab3, 0, 9, 3, 3);
-	grid_layout->addWidget(lab4, 3, 6, 2, 6);
-	grid_layout->addWidget(lab5, 5, 0, 4, 4);
-	grid_layout->addWidget(lab6, 5, 4, 4, 4);
-	grid_layout->addWidget(lab7, 5, 8, 4, 4);
-
-	SImage::loadAndCropImage(imagePaths[0], lab1);
-	SImage::loadAndCropImage(imagePaths[1], lab2);
-	SImage::loadAndCropImage(imagePaths[2], lab3);
-	SImage::loadAndCropImage(imagePaths[3], lab4);
-	SImage::loadAndCropImage(imagePaths[4], lab5);
-	SImage::loadAndCropImage(imagePaths[5], lab6);
-	SImage::loadAndCropImage(imagePaths[6], lab7);
+	for (int i = 0; i < 7; i++) {
+		SImage::loadAndCropImage(imagePaths[i], m_image_labels[i],SImage::LoadInWhere::HomePage_JointWidget);
+	}
 	//-----------------------------------
 
 	main_layout->addLayout(title_layout);
 	main_layout->addLayout(grid_layout);
-	this->setLayout(main_layout);
 
+	this->setLayout(main_layout);
 
 	grid_layout->update();
 	title_layout->update();
@@ -121,4 +104,14 @@ void SImagesJointWidget::paintEvent(QPaintEvent* event)
 	painter.drawPrimitive(QStyle::PE_Widget, opt);
 
 	QWidget::paintEvent(event);
+}
+
+void SImagesJointWidget::resizeEvent(QResizeEvent* event)
+{
+	grid_layout->update();
+	this->update();
+	layout()->activate();
+	for (int i = 0; i < 7; i++) {
+		SImage::loadAndCropImage(imagePaths[i], m_image_labels[i], SImage::LoadInWhere::HomePage_JointWidget);
+	}
 }

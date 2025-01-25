@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+class QGridLayout;
+class QLabel;
 class SImagesJointWidget : public QWidget {
 public:
     SImagesJointWidget(QWidget* parent = nullptr);
@@ -12,8 +14,11 @@ public:
 
 protected:
     void paintEvent(QPaintEvent* event)override;
+    void resizeEvent(QResizeEvent* event)override;
 private:
+    QGridLayout* grid_layout{};
 
+    QList<QLabel*> m_image_labels{};
 };
 
 #endif //!SIMAGESJOINTWIDGET_H_

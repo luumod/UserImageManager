@@ -41,7 +41,7 @@ void SHomePage::init()
 	middle_layout->setContentsMargins(0, 0, 0, 0);
 
 	m_jointWidget = new SImagesJointWidget;
-	m_jointWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	m_jointWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	m_recentMovementView = new SRescentMovementView;
 	m_recentMovementView->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 

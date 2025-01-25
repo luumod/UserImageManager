@@ -14,9 +14,11 @@ SImage::~SImage()
 {
 }
 
-void SImage::loadAndCropImage(const QString& filePath, QLabel* pixmapLab)
+void SImage::loadAndCropImage(const QString& filePath, QLabel* pixmapLab, LoadInWhere loadTpye)
 {
-	pixmapLab->clear();
+	if (loadTpye == LoadInWhere::Other) {
+		pixmapLab->clear();
+	}
 	QFuture<QPixmap> future = QtConcurrent::run([filePath, pixmapLab]() {
 		QPixmap pixmap(filePath);
 		QRect cropRect = cropPixmap(pixmap, pixmapLab->rect());
