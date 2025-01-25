@@ -484,6 +484,16 @@ void SImageManagerPage::showPage()
 	onSearch();
 }
 
+void SImageManagerPage::resizeEvent(QResizeEvent* e)
+{
+	if (m_imageDetailView) {
+		m_imageDetailView->resize(this->size());
+	}
+	if (m_imageModifyView) {
+		m_imageModifyView->resize(this->size());
+	}
+}
+
 void SImageManagerPage::parseJson(const QJsonObject& obj)
 {
 	m_model->clear(); //item会被清除

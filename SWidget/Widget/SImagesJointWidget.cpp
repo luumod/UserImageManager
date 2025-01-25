@@ -66,8 +66,9 @@ void SImagesJointWidget::init()
 	grid_layout->setContentsMargins(0,0,0,0);
 	//grid_layout->setSpacing(20);
 
+	m_image_labels.resize(7);
 	for (int i = 0; i < 7; i++) {
-		m_image_labels.append(new QLabel);
+		m_image_labels[i] = new QLabel;
 		m_image_labels[i]->setPixmap(QPixmap(imagePaths[i]));
 	}
 
@@ -88,11 +89,6 @@ void SImagesJointWidget::init()
 	main_layout->addLayout(grid_layout);
 
 	this->setLayout(main_layout);
-
-	grid_layout->update();
-	title_layout->update();
-	main_layout->update();
-	layout()->activate();
 }
 
 void SImagesJointWidget::paintEvent(QPaintEvent* event)

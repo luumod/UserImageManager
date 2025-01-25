@@ -15,12 +15,11 @@ SBigIconButton::SBigIconButton(const QString& iconPath, const QString& descripti
     icon->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     icon->setAlignment(Qt::AlignCenter);
 
-    QFont textFont = QFont("Corbel", 13);
+    QFont textFont = QFont("微软雅黑", 16, QFont::Bold);
     QFontMetrics fm(textFont);
     text = new QLabel(this);
     text->setFont(textFont);
     text->setText(description);
-    text->setWordWrap(true);
     text->setMinimumHeight(fm.lineSpacing());
     text->setAlignment(Qt::AlignCenter);
 
@@ -45,7 +44,7 @@ SBigIconButton::SBigIconButton(const QString& iconPath, const QString& descripti
     layout->setSpacing(15);
     layout->addWidget(icon);
     layout->addWidget(text);
-    layout->setAlignment(Qt::AlignCenter);
+    layout->setAlignment(Qt::AlignCenter); 
 
     this->setMinimumHeight(200);
 }

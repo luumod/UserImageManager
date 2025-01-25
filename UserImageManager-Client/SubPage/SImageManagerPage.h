@@ -23,6 +23,8 @@ public:
 	void init();
 	void onSearch();
 	void showPage();
+protected:
+	void resizeEvent(QResizeEvent* e) override;
 signals:
 	void pageChanged(int pageId);
 	void totalRecordsCountChanged(int totalCounts);
