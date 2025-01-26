@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QIcon>
 #include <QScrollBar>
+#include <QtConcurrent/QtConcurrent>
 
 SDisplayImagesScrollAreaWidget::SDisplayImagesScrollAreaWidget(QWidget* parent)
 	: QWidget(parent) 
@@ -18,10 +19,13 @@ SDisplayImagesScrollAreaWidget::SDisplayImagesScrollAreaWidget(QWidget* parent)
 	this->setMinimumWidth(1200);
 	this->setFixedHeight(290);
 	this->setMouseTracking(true); // 开启鼠标跟踪
+
+	startAutoScroll();
 }
 
 SDisplayImagesScrollAreaWidget::~SDisplayImagesScrollAreaWidget()
 {
+	stopScrolling = true;
 }
 
 void SDisplayImagesScrollAreaWidget::init()
@@ -50,9 +54,26 @@ void SDisplayImagesScrollAreaWidget::init()
 
 	auto content_widget = new QWidget;
 	QHBoxLayout* carouselLayout = new QHBoxLayout;
-	for (int i = 1; i <= 10; ++i) {
-		auto imageLabel = new SDisplayImageWidget;
-		imageLabel->setImagePath(QString("F:\\code\\UserImageManager\\test\\homePage\\%1.png").arg(i));
+	carouselLayout->setContentsMargins(0, 0, 0, 0);
+	carouselLayout->setSpacing(0);
+	SDisplayImageWidget* imageLabel = nullptr;
+	for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
+		 imageLabel = new SDisplayImageWidget;
+		imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
+		carouselLayout->addWidget(imageLabel);
+		carouselLayout->addSpacing(30);
+	}
+
+	for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
+		 imageLabel = new SDisplayImageWidget;
+		imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
+		carouselLayout->addWidget(imageLabel);
+		carouselLayout->addSpacing(30);
+	}
+
+	for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
+		 imageLabel = new SDisplayImageWidget;
+		imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
 		carouselLayout->addWidget(imageLabel);
 		carouselLayout->addSpacing(30);
 	}
@@ -63,6 +84,15 @@ void SDisplayImagesScrollAreaWidget::init()
 	content_layout->addWidget(scrollArea);   //下
 
 	this->setLayout(content_layout);
+
+	content_widget->update();
+	scrollArea->update();
+
+	// 初始化时将滚动条设置到中间位置
+    QTimer::singleShot(100, this, [=]() {
+        auto hScrollBar = scrollArea->horizontalScrollBar();
+        hScrollBar->setValue(hScrollBar->maximum() / 2);
+    });
 }
 
 void SDisplayImagesScrollAreaWidget::mousePressEvent(QMouseEvent* event)
@@ -81,8 +111,17 @@ void SDisplayImagesScrollAreaWidget::mouseMoveEvent(QMouseEvent* event)
 		int deltaX = event->pos().x() - lastMousePos.x();
 		lastMousePos = event->pos();
 		if (scrollArea) {
-			scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - deltaX);
-		}
+            auto hScrollBar = scrollArea->horizontalScrollBar();
+            hScrollBar->setValue(hScrollBar->value() - deltaX);
+
+
+            // 检查是否到达末尾并重置到中间位置
+            if (hScrollBar->value() == hScrollBar->maximum()) {
+                hScrollBar->setValue(hScrollBar->maximum() / 2);
+            } else if (hScrollBar->value() == hScrollBar->minimum()) {
+                hScrollBar->setValue(hScrollBar->maximum() / 2);
+            }
+        }
 	}
 }
 
@@ -94,11 +133,34 @@ void SDisplayImagesScrollAreaWidget::mouseReleaseEvent(QMouseEvent* event)
 void  SDisplayImagesScrollAreaWidget::moveLeft() {
 	// 左箭头点击事件，向左移动
 	scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - 300);
-	qDebug() << "moveLeft: value=" << scrollArea->horizontalScrollBar()->value() << '\n';
 }
 
 void  SDisplayImagesScrollAreaWidget::moveRight() {
 	// 右箭头点击事件，向右移动
 	scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() + 300);
-	qDebug() << "moveLeft: value=" << scrollArea->horizontalScrollBar()->value() << '\n';
+}
+
+void SDisplayImagesScrollAreaWidget::startAutoScroll()
+{
+    QtConcurrent::run([=]() {
+        while (true) {
+            QThread::msleep(50); // 每50毫秒滚动一次
+			if (stopScrolling) {
+				break;
+			}
+            if (!QMetaObject::invokeMethod(this, "autoScroll", Qt::QueuedConnection)){
+				break;
+			}
+        }
+    });
+}
+
+void SDisplayImagesScrollAreaWidget::autoScroll()
+{
+    auto hScrollBar = scrollArea->horizontalScrollBar();
+    int newValue = hScrollBar->value() + 1;
+    if (newValue >= hScrollBar->maximum()) {
+        newValue = hScrollBar->minimum();
+    }
+    hScrollBar->setValue(newValue);
 }

@@ -20,11 +20,17 @@ protected:
 private slots:
     void moveLeft();
     void moveRight();
-
+    void startAutoScroll();
+    void autoScroll();
 private:
     QScrollArea* scrollArea;
     bool dragging = false;
     QPoint lastMousePos;
+
+    bool stopScrolling{ false };
+
+    //显示最热的n张图片
+    static const int MAX_SHOW_IMAGE_COUNT = 6;
 };
 
 

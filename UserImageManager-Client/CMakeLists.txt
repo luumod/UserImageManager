@@ -30,10 +30,5 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         COMMENT "MinGW ------ Generating <client> external dependency."
     )
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND F:/Tools/Qt/6.5.3/msvc2019_64/bin/windeployqt.exe ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}.exe
-        COMMENT "MSVC ------ Generating <client> external dependency."
-    )
+    
 endif()
