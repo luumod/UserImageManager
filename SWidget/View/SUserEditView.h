@@ -1,5 +1,5 @@
-﻿#ifndef  USEEDITDLG_H_
-#define  USEEDITDLG_H_
+﻿#ifndef  SUSEREDITVIEW_H_
+#define  SUSEREDITVIEW_H_
 
 #include "SUserIOBaseView.h"
 #include <QJsonObject>
@@ -28,4 +28,4 @@ private:
 	QLineEdit* m_email_edit{};
 };
 
-#endif //! USERDETAILSDLG_H_
+#endif //! SUSEREDITVIEW_H_

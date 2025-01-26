@@ -30,7 +30,7 @@ bool EventFilterObject::eventFilter(QObject* watched, QEvent* event)
 	else if (event->type() == QEvent::MouseMove && mev->buttons() & Qt::LeftButton) {
 		QWidget* w = dynamic_cast<QWidget*>(watched);
 		if (w) {
-			w->move(mev->globalPos() - m_pressPos);
+			w->move(mev->globalPosition().toPoint() - m_pressPos);
 		}
 	}
 	return false;

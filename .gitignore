@@ -405,6 +405,8 @@ FodyWeavers.xsd
 /out/build/Visual_DSAA.exe
 /out/*
 out
+bin
+build
 
 CMakePresets.json
 CMakeUserPresets.json

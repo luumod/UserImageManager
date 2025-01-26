@@ -27,7 +27,7 @@ SUserCommentView::SUserCommentView(QWidget* parent)
 		QTextEdit#comment_edit{font-size: 18px; font-family: 微软雅黑; border: 1px solid black; border-radius: 15px; background-color: rgb(240,240,240);}");
 }
 
-inline SUserCommentView::~SUserCommentView()
+SUserCommentView::~SUserCommentView()
 {
 }
 

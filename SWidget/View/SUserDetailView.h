@@ -1,5 +1,5 @@
-﻿#ifndef USERDETAILSDLG_H_
-#define  USERDETAILSDLG_H_
+﻿#ifndef USERDETAILVIEW_H_
+#define  USERDETAILVIEW_H_
 
 #include <QWidget>
 #include <QJsonObject>
@@ -38,4 +38,4 @@ private:
 	void updateUi();
 };
 
-#endif //! USERDETAILSDLG_H_
+#endif //! USERDETAILVIEW_H_
