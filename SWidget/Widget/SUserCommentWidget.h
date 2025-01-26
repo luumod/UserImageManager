@@ -1,5 +1,5 @@
-﻿#ifndef SUSERCOMMENT_H
-#define SUSERCOMMENT_H
+﻿#ifndef SUSERCOMMENTWIDGET_H
+#define SUSERCOMMENTWIDGET_H
 
 #include <QWidget>
 
@@ -28,4 +28,4 @@ private:
 	QString m_commentTime{};
 };
 
-#endif // SUSERCOMMENT_H
+#endif // SUSERCOMMENTWIDGET_H

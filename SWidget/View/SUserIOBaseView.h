@@ -1,5 +1,5 @@
-﻿#ifndef SIODIALOG_H_
-#define SIODIALOG_H_
+﻿#ifndef SUSERIOBASEVIEW_H_
+#define SUSERIOBASEVIEW_H_
 
 #include <QWidget>
 #include <QPushButton>
@@ -24,4 +24,4 @@ private:
 	QWidget* m_centraWidget{};
 };
 
-#endif // !SIODIALOG_H_
+#endif // !SUSERIOBASEVIEW_H_

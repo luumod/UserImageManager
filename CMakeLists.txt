@@ -14,3 +14,11 @@ add_subdirectory(SJwt)
 add_subdirectory(UserImageManager-Client)
 # 服务器
 add_subdirectory(UserImageManager-Server)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message("使用MinGW编译")
+    set(CMAKE_CXX_COMPILER "F:/Tools/Qt/Tools/mingw1310_64/bin/g++.exe")
+    set(CMAKE_C_COMPILER "F:/Tools/Qt/Tools/mingw1310_64/bin/gcc.exe")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message("使用MSVC编译")
+endif()

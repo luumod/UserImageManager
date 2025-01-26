@@ -21,3 +21,19 @@ add_executable(${PROJECT_NAME} ${USERPRIVILEGE_CLIENT_SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Network LoginRegister SWidget SubPage)
 
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-g> $<$<CONFIG:Release>:-O3>)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND F:/Tools/Qt/6.5.3/mingw_64/bin/windeployqt.exe ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}.exe
+        COMMENT "MinGW ------ Generating <client> external dependency."
+    )
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND F:/Tools/Qt/6.5.3/msvc2019_64/bin/windeployqt.exe ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}.exe
+        COMMENT "MSVC ------ Generating <client> external dependency."
+    )
+endif()

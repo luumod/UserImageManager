@@ -2,6 +2,8 @@
 #define SBUTTONDELEGATE_H
 
 #include <QStyledItemDelegate>
+#include <QAbstractButton>
+#include <vector>
 
 class QAbstractButton;
 class SButtonDelegate : public QStyledItemDelegate

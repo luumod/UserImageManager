@@ -1,5 +1,5 @@
-﻿#ifndef SCOMMENTDLG_H_
-#define  SCOMMENTDLG_H_
+﻿#ifndef SUERCOMMENTVIEW_H_
+#define  SUERCOMMENTVIEW_H_
 
 #include <QWidget>
 #include <QMap>
@@ -50,4 +50,4 @@ public:
 
 //class CommentEditWidget :public 
 
-#endif //! SCOMMENTDLG_H_
+#endif //! SUERCOMMENTVIEW_H_

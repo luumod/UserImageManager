@@ -34,11 +34,11 @@ public:
 	//成功操作[0-999]
 	CODE(Success, 0, "成功");
 	CODE(SuccessButNoData, 1, "成功，但没有数据");
-	CODE(ImageLiked, 2, "成功", "点赞成功");
-	CODE(ImageUnliked, 3, "成功", "取消点赞");
-	CODE(ImageStared, 4, "成功", "收藏成功");
-	CODE(ImageUnStared, 5, "成功", "取消收藏");
-	CODE(ImageCommented, 6, "成功", "评论成功");
+	CODE(ImageLiked, 2, "成功，点赞成功");
+	CODE(ImageUnliked, 3, "成功，取消点赞");
+	CODE(ImageStared, 4, "成功，收藏成功");
+	CODE(ImageUnStared, 5, "成功，取消收藏");
+	CODE(ImageCommented, 6, "成功，评论成功");
 	//参数错误[1000-1999]
 	CODE(ParamJsonInvalid, 1000, "请求Json参数无效");
 	CODE(ParamInvalid, 1001, "参数非法");
