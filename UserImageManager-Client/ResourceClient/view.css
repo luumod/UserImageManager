@@ -1,0 +1,12 @@
+﻿QWidget#SRescentMovementView {
+    background-color: rgb(224, 239, 229);
+    border: none;
+    border-radius: 10px;
+}
+
+QLabel#title_lab {
+    font-size: 24px;
+    font-weight: bold;
+    font-family: Microsoft YaHei;
+    color: black;
+}

@@ -34,7 +34,7 @@ SUploadorDragImageWidget::SUploadorDragImageWidget(QWidget* parent)
 	this->setMinimumSize(500, 350);
 
 	//读取css文件
-	QFile file("F:/code/UserImageManager/test/drapImage/upload.css");
+	QFile file(":/ResourceClient/upload.css");
 	if (file.open(QIODevice::ReadOnly))
 	{	
 		QString style = file.readAll();

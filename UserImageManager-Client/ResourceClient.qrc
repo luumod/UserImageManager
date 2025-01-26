@@ -24,5 +24,8 @@
         <file>ResourceClient/userManager.png</file>
         <file>ResourceClient/user.png</file>
         <file>ResourceClient/jiagong.png</file>
+        <file>ResourceClient/joint.css</file>
+        <file>ResourceClient/view.css</file>
+        <file>ResourceClient/upload.css</file>
     </qresource>
 </RCC>

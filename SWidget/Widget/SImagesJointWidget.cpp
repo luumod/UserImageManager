@@ -27,7 +27,7 @@ SImagesJointWidget::SImagesJointWidget(QWidget* parent)
 	//this->setFixedSize(960, 720);
 	this->setObjectName("SImagesJointWidget");
 
-	QString qss_file = "F:\\code\\UserImageManager\\test\\homePage\\joint.css";
+	QString qss_file = ":/ResourceClient/joint.css";
 	QFile qss(qss_file);
 	if (qss.open(QFile::ReadOnly))
 	{

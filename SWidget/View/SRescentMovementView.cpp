@@ -12,7 +12,7 @@ SRescentMovementView::SRescentMovementView(QWidget* parent)
 	init();
 	this->setObjectName("SRescentMovementView");
 
-	QString qss_file = "F:\\code\\UserImageManager\\test\\homePage\\view.css";
+	QString qss_file = ":/ResourceClient/view.css";
 	QFile qss(qss_file);
 	if (qss.open(QFile::ReadOnly))
 	{
