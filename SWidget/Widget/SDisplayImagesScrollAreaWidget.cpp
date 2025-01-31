@@ -47,37 +47,26 @@ void SDisplayImagesScrollAreaWidget::init()
 
 	//--------------- 内容 ---------------------
 	scrollArea = new QScrollArea;
-	scrollArea->setFrameShape(QFrame::NoFrame); // 无边框
-	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 不显示水平滚动条
-	scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // 不显示垂直滚动条
-	scrollArea->setWidgetResizable(true);
+	scrollArea->setFrameShape(QFrame::NoFrame);
+	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scrollArea->setWidgetResizable(false); // 关闭自动调整，确保内容足够宽
 
-	auto content_widget = new QWidget;
+	content_widget = new QWidget;
 	QHBoxLayout* carouselLayout = new QHBoxLayout;
-	carouselLayout->setContentsMargins(0, 0, 0, 0);
-	carouselLayout->setSpacing(0);
-	SDisplayImageWidget* imageLabel = nullptr;
-	for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
-		 imageLabel = new SDisplayImageWidget;
-		imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
-		carouselLayout->addWidget(imageLabel);
-		carouselLayout->addSpacing(30);
+
+	// 添加三组相同的图片以实现循环
+	for (int group = 0; group < 3; ++group) { // 三组循环
+		for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
+			auto imageLabel = new SDisplayImageWidget;
+			imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
+			carouselLayout->addWidget(imageLabel);
+			carouselLayout->addSpacing(30);
+		}
 	}
 
-	for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
-		 imageLabel = new SDisplayImageWidget;
-		imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
-		carouselLayout->addWidget(imageLabel);
-		carouselLayout->addSpacing(30);
-	}
-
-	for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
-		 imageLabel = new SDisplayImageWidget;
-		imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
-		carouselLayout->addWidget(imageLabel);
-		carouselLayout->addSpacing(30);
-	}
 	content_widget->setLayout(carouselLayout);
+	content_widget->adjustSize(); // 调整内容大小以正确计算宽度
 	scrollArea->setWidget(content_widget);
 	// ---------------------------------------------
 	content_layout->addLayout(title_layout); //上
@@ -88,11 +77,12 @@ void SDisplayImagesScrollAreaWidget::init()
 	content_widget->update();
 	scrollArea->update();
 
-	// 初始化时将滚动条设置到中间位置
-    QTimer::singleShot(100, this, [=]() {
-        auto hScrollBar = scrollArea->horizontalScrollBar();
-        hScrollBar->setValue(hScrollBar->maximum() / 2);
-    });
+	// 初始化时滚动到中间组
+	QTimer::singleShot(10, this, [=]() {
+		auto hScrollBar = scrollArea->horizontalScrollBar();
+		int totalWidth = content_widget->width();
+		hScrollBar->setValue(totalWidth / 3); // 定位到中间组起始位置
+		});
 }
 
 void SDisplayImagesScrollAreaWidget::mousePressEvent(QMouseEvent* event)
@@ -106,22 +96,28 @@ void SDisplayImagesScrollAreaWidget::mousePressEvent(QMouseEvent* event)
 
 void SDisplayImagesScrollAreaWidget::mouseMoveEvent(QMouseEvent* event)
 {
-	// 鼠标移动时，计算滑动量并调整位置
 	if (dragging) {
 		int deltaX = event->pos().x() - lastMousePos.x();
 		lastMousePos = event->pos();
 		if (scrollArea) {
-            auto hScrollBar = scrollArea->horizontalScrollBar();
-            hScrollBar->setValue(hScrollBar->value() - deltaX);
+			auto hScrollBar = scrollArea->horizontalScrollBar();
+			int oldValue = hScrollBar->value();
+			hScrollBar->setValue(oldValue - deltaX);
 
+			// 动态调整循环逻辑
+			int totalWidth = content_widget->width();
+			if (totalWidth <= 0) return; // 避免除零
 
-            // 检查是否到达末尾并重置到中间位置
-            if (hScrollBar->value() == hScrollBar->maximum()) {
-                hScrollBar->setValue(hScrollBar->maximum() / 2);
-            } else if (hScrollBar->value() == hScrollBar->minimum()) {
-                hScrollBar->setValue(hScrollBar->maximum() / 2);
-            }
-        }
+			int sectionWidth = totalWidth / 3; //每组的宽度
+			int currentValue = hScrollBar->value();
+
+			if (currentValue >= 2 * sectionWidth) { //滚动到了C组
+				hScrollBar->setValue(currentValue - sectionWidth);
+			}
+			else if (currentValue < sectionWidth) { //滚动到了A组
+				hScrollBar->setValue(currentValue + sectionWidth);
+			}
+		}
 	}
 }
 

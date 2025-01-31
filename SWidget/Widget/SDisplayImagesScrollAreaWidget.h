@@ -26,6 +26,7 @@ private:
     QScrollArea* scrollArea;
     bool dragging = false;
     QPoint lastMousePos;
+    QWidget* content_widget{};
 
     bool stopScrolling{ false };
 
