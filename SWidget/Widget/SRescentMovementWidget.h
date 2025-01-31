@@ -4,13 +4,13 @@
 #include <QWidget>
 
 class QVBoxLayout;
-class SRescentMovementView : public QWidget
+class SRescentMovementWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    SRescentMovementView(QWidget* parent = 0);
-    ~SRescentMovementView();
+    SRescentMovementWidget(QWidget* parent = 0);
+    ~SRescentMovementWidget();
 
     void init();
 

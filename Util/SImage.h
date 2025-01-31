@@ -9,7 +9,7 @@ class SImage :public QObject
     Q_OBJECT
 public:
     enum class LoadInWhere{
-        HomePage_JointWidget,
+        DontClear,
         Other,
     };
     SImage();

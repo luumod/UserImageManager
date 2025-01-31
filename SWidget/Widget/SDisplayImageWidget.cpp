@@ -9,11 +9,9 @@
 
 SDisplayImageWidget::SDisplayImageWidget(int image_id,const QString& imagePath, QWidget* parent)
 	: QWidget(parent)
-	, m_image_id(image_id)
 	, m_imagePath(imagePath)
 {
 	init();
-	setImagePath(imagePath);
 	setMouseTracking(true);
 
 	this->setStyleSheet("QLabel#nameLab{font-size:13px;font-family: 微软雅黑; font-weight: 550;}");
@@ -56,19 +54,14 @@ void SDisplayImageWidget::init()
 	nameLab->setObjectName("nameLab");
 	nameLab->setAlignment(Qt::AlignCenter);
 
-	auto likeLab = new QLabel(QString("❤112"));
-	likeLab->setAlignment(Qt::AlignCenter);
-
-	auto starLab = new QLabel(QString("⭐43"));
-	nameLab->setAlignment(Qt::AlignCenter);
+	m_heatLab = new QLabel(QString("♨️112"));
+	m_heatLab->setAlignment(Qt::AlignCenter);
 
 	infoLayout->addSpacing(10);
 	infoLayout->addWidget(nameLab);
 	infoLayout->addStretch();
-	infoLayout->addWidget(likeLab);
+	infoLayout->addWidget(m_heatLab);
 	infoLayout->addSpacing(5);
-	infoLayout->addWidget(starLab);
-	infoLayout->addSpacing(10);
 	//---------------------------
 
 	mainLayout->addStretch();
@@ -84,15 +77,11 @@ bool SDisplayImageWidget::isNull() const
 	return m_imagePath.isNull();
 }
 
-void SDisplayImageWidget::setImagePath(const QString& filePath)
+void SDisplayImageWidget::setData(const QString& path,int heat)
 {
-	if (filePath.isEmpty()) { //仅当有图片时，光标才会变成手型
-		setCursor(Qt::ArrowCursor);
-		m_pixmapLab->clear();
-		return;
-	}
+	m_imagePath = path;
 	setCursor(Qt::PointingHandCursor);
-	m_imagePath = filePath;
+	m_heatLab->setText(QString("♨️%1").arg(heat));
 
 	//异步加载图片
 	SImage::loadAndCropImage(m_imagePath, m_pixmapLab);
@@ -100,9 +89,9 @@ void SDisplayImageWidget::setImagePath(const QString& filePath)
 
 void SDisplayImageWidget::mousePressEvent(QMouseEvent* event)
 {
-	//鼠标左键点击事件
-	if (event->button() == Qt::LeftButton && !m_pixmapLab->pixmap().isNull()) {
-		emit clickedImage(m_image_id);
+	//鼠标左键双击
+	if (event->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonDblClick) {
+		emit doubleClickedToOpenImageDetail(m_imagePath);
 	}
 	QWidget::mousePressEvent(event);
 }

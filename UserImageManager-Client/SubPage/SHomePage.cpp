@@ -1,7 +1,8 @@
 ﻿#include "SHomePage.h"
 #include "SDisplayImagesScrollAreaWidget.h"
 #include "SImagesJointWidget.h"
-#include "SRescentMovementView.h"
+#include "SRescentMovementWidget.h"
+#include "SImageViewer.h"
 #include <QBoxLayout>
 #include <QScrollArea>
 
@@ -34,6 +35,17 @@ void SHomePage::init()
 
 	//----------------顶部---------------
 	m_displayWidget = new SDisplayImagesScrollAreaWidget;
+	connect(m_displayWidget, &SDisplayImagesScrollAreaWidget::noUploadImages, this, [=]() {
+		m_displayWidget->deleteLater();
+		m_displayWidget = nullptr;
+	});
+	connect(m_displayWidget, &SDisplayImagesScrollAreaWidget::openImageDetail, this, [=](const QString& path) {
+		m_imageViewer = new SImageViewer(path);
+		/*m_imageShowWidget->setData(imageInfo);
+		m_imageShowWidget->resize(this->size());*/
+		m_imageViewer->setAttribute(Qt::WA_DeleteOnClose);
+		m_imageViewer->show();
+		});
 	//-----------------------------------
 
 	//----------------中部-----------------
@@ -42,15 +54,17 @@ void SHomePage::init()
 
 	m_jointWidget = new SImagesJointWidget;
 	m_jointWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-	m_recentMovementView = new SRescentMovementView;
-	m_recentMovementView->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	m_recentMovementWidget = new SRescentMovementWidget;
+	m_recentMovementWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	middle_layout->addWidget(m_jointWidget);
 	middle_layout->addSpacing(50);
-	middle_layout->addWidget(m_recentMovementView);
+	middle_layout->addWidget(m_recentMovementWidget);
 	//-------------------------------------
 
-	content_layout->addWidget(m_displayWidget);
+	if (m_displayWidget) {
+		content_layout->addWidget(m_displayWidget);
+	}
 	content_layout->addSpacing(50);
 	content_layout->addLayout(middle_layout);
 	auto w = new QWidget;

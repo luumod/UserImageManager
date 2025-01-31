@@ -5,21 +5,23 @@
 
 class SDisplayImagesScrollAreaWidget;
 class SImagesJointWidget;
-class SRescentMovementView;
+class SRescentMovementWidget;
+class SImageDetailView;
+class SImageViewer;
 class SHomePage : public QWidget
 {
 public:   
-    SHomePage(QWidget* parent = nullptr);
-    ~SHomePage();
+	SHomePage(QWidget* parent = nullptr);
+	~SHomePage();
 
-    void init();
-
-protected:
+	void init();
 
 private:
-    SDisplayImagesScrollAreaWidget* m_displayWidget{};
-    SImagesJointWidget* m_jointWidget{};
-    SRescentMovementView* m_recentMovementView{};
+	SDisplayImagesScrollAreaWidget* m_displayWidget{};
+	SImagesJointWidget* m_jointWidget{};
+	SRescentMovementWidget* m_recentMovementWidget{};
+
+	SImageViewer* m_imageViewer{};
 };
 
 

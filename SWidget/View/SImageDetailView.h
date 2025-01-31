@@ -15,6 +15,7 @@ public:
 	{
 		In_SPersonalImagePage,
 		In_SImageManagerPage,
+		In_SHomePage
 	};
 	SImageDetailView(ImageDetailPageType pageType, QWidget* parent = nullptr);
 	~SImageDetailView();

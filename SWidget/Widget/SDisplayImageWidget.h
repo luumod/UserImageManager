@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QPixmap>
+#include "SImageInfo.h"
 
 class QLabel;
 class SDisplayImageWidget : public QWidget
@@ -18,9 +19,9 @@ public:
 
 	void init();
 	bool isNull()const;
-	void setImagePath(const QString& filePath);
+	void setData(const QString& path, int heat);
 signals:
-	void clickedImage(int id);
+	void doubleClickedToOpenImageDetail(const QString& path);
 protected:
 	void mousePressEvent(QMouseEvent* event)override;
 	void mouseMoveEvent(QMouseEvent* event) override;
@@ -28,8 +29,9 @@ protected:
 
 private:
 	QLabel* m_pixmapLab{};
+	QLabel* m_heatLab{};
+
 	QString m_imagePath{};
-	int m_image_id{}; //must：用于跳转到该图片
 };
 
 #endif // SDISPLAYIMAGEWIDGET_H

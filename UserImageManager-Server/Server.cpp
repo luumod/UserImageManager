@@ -1039,6 +1039,107 @@ void Server::route_userImage()
 		return;
 		});
 
+	//获取最热的n张图片 GET
+	m_server.route("/api/user/get_hot_image", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
+			
+		//校验参数
+		std::optional<QByteArray> token = CheckToken(request);
+		if (token.has_value()) { //token校验失败
+			responder.write(token.value(), "application/json");
+			return;
+		}
+
+		auto uquery = request.query();
+		if (uquery.queryItemValue("user_id").isEmpty()) {
+			responder.write(SResultCode::ParamMissing.toJson(), "application/json");
+			return;
+		}
+		
+		auto get_size = uquery.queryItemValue("get_size").toInt();
+		if (uquery.queryItemValue("get_size").isEmpty()) {
+			get_size = 6;
+		}
+		auto user_id = uquery.queryItemValue("user_id").toInt();
+
+		SSqlConnectionWrap wrap;
+		QSqlQuery query(wrap.openConnection());
+		query.prepare(QString("SELECT image_id, (like_count * 1 + star_count * 3 + download_count * 5 + comment_count * 4) AS heat FROM image_statistics WHERE user_id=%1 AND isDeleted=0 ORDER BY heat DESC LIMIT %2")
+			.arg(user_id).arg(get_size));
+		if (!query.exec()) {
+			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+			return;
+		}
+#if _DEBUG	
+		qDebug() << "获取最热的" << get_size << "张图片";
+		qDebug() << query.lastQuery();
+#endif
+
+		SSqlConnectionWrap wrap2,wrap3;
+		QSqlQuery query2(wrap2.openConnection());
+		QSqlQuery query_everyImage_statistics(wrap3.openConnection());
+		QJsonArray jarray;
+		while (query.next()) { 
+			auto image_id = query.value("image_id").toInt(); //获取每张图片id
+			auto heat = query.value("heat").toInt(); //获取热度
+			query2.prepare(QString("SELECT * FROM user_image WHERE image_id=%1").arg(image_id));
+			if (!query2.exec()) {
+				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+				return;
+			}
+			query_everyImage_statistics.prepare(QString("SELECT like_count,star_count,download_count,comment_count FROM image_statistics WHERE image_id=%1").arg(image_id)); //统计每一张图片的统计数据数
+			if (!query_everyImage_statistics.exec()) {
+				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+				return;
+			}
+#if _DEBUG	
+			qDebug() << query_everyImage_statistics.lastQuery();
+#endif
+#if _DEBUG	
+			qDebug() << query2.lastQuery();
+#endif
+			query2.next();
+			query_everyImage_statistics.next();
+			QJsonObject jobj2;
+			jobj2.insert("heat", heat);
+			jobj2.insert("image_id", image_id);
+			jobj2.insert("owner_id", query2.value("owner_id").toInt());
+			jobj2.insert("image_path", query2.value("image_path").toString());
+			jobj2.insert("image_name", query2.value("image_name").toString());
+			jobj2.insert("image_size", query2.value("image_size").toInt());
+			jobj2.insert("image_format", query2.value("image_format").toString());
+			jobj2.insert("image_share", query2.value("image_share").toInt());
+			jobj2.insert("image_type", query2.value("image_type").toString());
+			jobj2.insert("image_download", query2.value("image_download").toInt());
+			jobj2.insert("image_ResolutionRatio", query2.value("image_ResolutionRatio").toString());
+			jobj2.insert("image_quality", query2.value("image_quality").toString());
+			jobj2.insert("upload_time", query2.value("upload_time").toString());
+			jobj2.insert("description", query2.value("description").toString());
+			jobj2.insert("like_count", query_everyImage_statistics.value("like_count").toInt());
+			jobj2.insert("star_count", query_everyImage_statistics.value("star_count").toInt());
+			jobj2.insert("download_count", query_everyImage_statistics.value("download_count").toInt());
+			jobj2.insert("comment_count", query_everyImage_statistics.value("comment_count").toInt());
+			jarray.append(jobj2);
+		}
+		if (jarray.size() <= 0) {
+			responder.write(SResultCode::ImageNotFound.toJson(), "application/json");
+			return;
+		}
+
+		while (jarray.size() < get_size) {
+			//不够，则重复添加已经添加的所有图片
+			auto tmpArray = jarray;
+			for (auto i = 0; i < tmpArray.size(); i++) {
+				jarray.append(tmpArray[i]);
+			}
+		}
+
+		QJsonObject jobj;
+		jobj.insert("images", jarray);
+		responder.write(SResult::success(jobj), "application/json");
+		return;
+
+		});
+
 	//用户图片获取：获取某个用户上传的全部图片(包括已删除图片) GET
 	m_server.route("/api/user/get_image_all", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
 

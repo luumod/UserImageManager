@@ -10,13 +10,13 @@
 
 // 图片路径
 QStringList imagePaths = {
-	"F:/code/UserImageManager/test/uploadImage/y/动漫/暗夜的神秘力量.png",
-	"F:/code/UserImageManager/test/uploadImage/y/动漫/幻彩精灵之韵.png",
-	"F:/code/UserImageManager/test/uploadImage/y/动漫/暮色中的遐思.png",
-	"F:/code/UserImageManager/test/uploadImage/y/动漫/烟雨江南梦.jpg",
-	"F:/code/UserImageManager/test/uploadImage/y/美女/wallhaven-5g2d95_400x800.png",
-	"F:/code/UserImageManager/test/uploadImage/y/美女/wallhaven-jxme8q_500x1000.png",
-	"F:/code/UserImageManager/test/uploadImage/y/动漫/时尚先锋魅力.png",
+	"F:/code/GP/uploadImages/动漫/暗夜的神秘力量.png",
+	"F:/code/GP/uploadImages/动漫/幻彩精灵之韵.png",
+	"F:/code/GP/uploadImages/动漫/暮色中的遐思.png",
+	"F:/code/GP/uploadImages/动漫/烟雨江南梦.jpg",
+	"F:/code/GP/uploadImages/风景/wallhaven-3ldlx3_1920x1080.png",
+	"F:/code/GP/uploadImages/风景/wallhaven-6dvd3w_1600x1200.png",
+	"F:/code/GP/uploadImages/动漫/时尚先锋魅力.png",
 };
 
 SImagesJointWidget::SImagesJointWidget(QWidget* parent)
@@ -81,7 +81,7 @@ void SImagesJointWidget::init()
 	grid_layout->addWidget(m_image_labels[6], 5, 8, 4, 4);
 
 	for (int i = 0; i < 7; i++) {
-		SImage::loadAndCropImage(imagePaths[i], m_image_labels[i],SImage::LoadInWhere::HomePage_JointWidget);
+		SImage::loadAndCropImage(imagePaths[i], m_image_labels[i],SImage::LoadInWhere::DontClear);
 	}
 	//-----------------------------------
 
@@ -108,6 +108,6 @@ void SImagesJointWidget::resizeEvent(QResizeEvent* event)
 	this->update();
 	layout()->activate();
 	for (int i = 0; i < 7; i++) {
-		SImage::loadAndCropImage(imagePaths[i], m_image_labels[i], SImage::LoadInWhere::HomePage_JointWidget);
+		SImage::loadAndCropImage(imagePaths[i], m_image_labels[i], SImage::LoadInWhere::DontClear);
 	}
 }

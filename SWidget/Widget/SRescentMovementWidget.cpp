@@ -1,4 +1,4 @@
-﻿#include "SRescentMovementView.h"
+﻿#include "SRescentMovementWidget.h"
 #include "SUserMessageWidget.h"
 #include <QBoxLayout>
 #include <QLabel>
@@ -6,11 +6,11 @@
 #include <QStylePainter>
 #include <QStyleOption>
 
-SRescentMovementView::SRescentMovementView(QWidget* parent)
+SRescentMovementWidget::SRescentMovementWidget(QWidget* parent)
 	: QWidget(parent)
 {
 	init();
-	this->setObjectName("SRescentMovementView");
+	this->setObjectName("SRescentMovementWidget");
 
 	QString qss_file = ":/ResourceClient/view.css";
 	QFile qss(qss_file);
@@ -21,11 +21,11 @@ SRescentMovementView::SRescentMovementView(QWidget* parent)
 	}
 }
 
-SRescentMovementView::~SRescentMovementView()
+SRescentMovementWidget::~SRescentMovementWidget()
 {
 }
 
-void SRescentMovementView::init()
+void SRescentMovementWidget::init()
 {
 	auto main_layout = new QVBoxLayout;
 	main_layout->setContentsMargins(0, 0, 0, 0);
@@ -65,13 +65,13 @@ void SRescentMovementView::init()
 	this->setLayout(main_layout);
 }
 
-void SRescentMovementView::addMessage(int image_id, QString user_name, QString message, QString dateTime)
+void SRescentMovementWidget::addMessage(int image_id, QString user_name, QString message, QString dateTime)
 {
 	auto msg_widget = new SUserMessageWidget(image_id, user_name, message, dateTime);
 	m_contentLayout->addWidget(msg_widget);
 }
 
-void SRescentMovementView::paintEvent(QPaintEvent* event)
+void SRescentMovementWidget::paintEvent(QPaintEvent* event)
 {
 	QStylePainter painter(this);
 	QStyleOption opt;

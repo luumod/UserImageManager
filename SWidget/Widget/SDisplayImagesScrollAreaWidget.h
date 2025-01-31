@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPoint>
+#include "SImageInfo.h"
 
 class QScrollArea;
 class SDisplayImagesScrollAreaWidget : public QWidget {
@@ -22,6 +23,10 @@ private slots:
     void moveRight();
     void startAutoScroll();
     void autoScroll();
+signals:
+    void notifyNHotsImagesLoaded();
+    void noUploadImages();
+    void openImageDetail(const QString& path);
 private:
     QScrollArea* scrollArea;
     bool dragging = false;
@@ -31,7 +36,7 @@ private:
     bool stopScrolling{ false };
 
     //显示最热的n张图片
-    static const int MAX_SHOW_IMAGE_COUNT = 6;
+    static constexpr int MAX_SHOW_IMAGE_COUNT = 6;
 };
 
 

@@ -35,7 +35,7 @@ void SUserMessageWidget::init()
 	auto image_layout = new QVBoxLayout;
 	auto image_label = new QLabel;
 	image_label->setFixedSize(40, 40);
-	image_label->setPixmap(QPixmap("F:/code/UserImageManager/test/homePage/5.png").scaled(image_label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	image_label->setPixmap(QPixmap(":/ResourceClient/dog.png").scaled(image_label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	image_label->setMask(QRegion(image_label->rect(), QRegion::Ellipse));
 
 	image_layout->addWidget(image_label);

@@ -1,5 +1,8 @@
 ﻿#include "SDisplayImagesScrollAreaWidget.h"
 #include "SDisplayImageWidget.h"
+#include "SHttpClient.h"
+#include "SImageInfo.h"
+#include "SApp.h"
 #include <QScrollArea>
 #include <QHBoxLayout>
 #include <QDebug>
@@ -9,6 +12,7 @@
 #include <QMouseEvent>
 #include <QTimer>
 #include <QIcon>
+#include <QDir>
 #include <QScrollBar>
 #include <QtConcurrent/QtConcurrent>
 
@@ -19,8 +23,6 @@ SDisplayImagesScrollAreaWidget::SDisplayImagesScrollAreaWidget(QWidget* parent)
 	this->setMinimumWidth(1200);
 	this->setFixedHeight(290);
 	this->setMouseTracking(true); // 开启鼠标跟踪
-
-	startAutoScroll();
 }
 
 SDisplayImagesScrollAreaWidget::~SDisplayImagesScrollAreaWidget()
@@ -38,7 +40,7 @@ void SDisplayImagesScrollAreaWidget::init()
 	auto title_layout = new QHBoxLayout;
 	title_layout->setContentsMargins(0, 0, 0, 0);
 	auto titleLabel = new QLabel;
-	titleLabel->setText("图片展示区");
+	titleLabel->setText("最近的图片");
 	titleLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
 	title_layout->addStretch();
 	title_layout->addWidget(titleLabel);
@@ -55,34 +57,59 @@ void SDisplayImagesScrollAreaWidget::init()
 	content_widget = new QWidget;
 	QHBoxLayout* carouselLayout = new QHBoxLayout;
 
-	// 添加三组相同的图片以实现循环
-	for (int group = 0; group < 3; ++group) { // 三组循环
-		for (int i = 1; i <= MAX_SHOW_IMAGE_COUNT; ++i) {
-			auto imageLabel = new SDisplayImageWidget;
-			imageLabel->setImagePath(QString("F:\\code\\GP\\homepage_topImages\\%1.png").arg(i));
-			carouselLayout->addWidget(imageLabel);
-			carouselLayout->addSpacing(30);
+	//获取自己上传的最热门的n张图片，展示出来，如果一张都没有上传，则不显示此模块
+	SHttpClient(URL("/api/user/get_hot_image?user_id=" + sApp->userData("user/id").toString() + "&get_size=" + QString::number(MAX_SHOW_IMAGE_COUNT))).debug(true)
+		.header("Authorization", "Bearer" + sApp->userData("user/token").toString())
+		.success([=](const QByteArray& data) {
+		auto json = QJsonDocument::fromJson(data).object();
+		if (json["code"].toInt() < 1000) {
+			auto Nhot_images = json["data"].toObject()["images"].toArray(); //确保每一组一定是MAX_SHOW_IMAGE_COUNT张图片
+			for (int group = 0; group < 3; ++group) { // 三组循环
+				for (int i = 1; i <= Nhot_images.size(); ++i) {
+					auto imageLabel = new SDisplayImageWidget;
+					connect(imageLabel, &SDisplayImageWidget::doubleClickedToOpenImageDetail, this, [=](const QString& path) {
+							//被双击，显示图片的原图
+							emit openImageDetail(path);
+						});
+					imageLabel->setData(
+						QDir::currentPath() + "/" + Nhot_images[i - 1].toObject()["image_path"].toString(), 
+						Nhot_images[i - 1].toObject()["heat"].toInt()
+					);
+					carouselLayout->addWidget(imageLabel);
+					carouselLayout->addSpacing(30);
+				}
+			}
+			emit notifyNHotsImagesLoaded();
 		}
-	}
+		else {
+			qWarning() << "Failed to like image:" << json["message"].toString();
+			emit noUploadImages();
+		}
+			})
+		.get();
 
-	content_widget->setLayout(carouselLayout);
-	content_widget->adjustSize(); // 调整内容大小以正确计算宽度
-	scrollArea->setWidget(content_widget);
-	// ---------------------------------------------
-	content_layout->addLayout(title_layout); //上
-	content_layout->addWidget(scrollArea);   //下
+	connect(this, &SDisplayImagesScrollAreaWidget::notifyNHotsImagesLoaded, [=]() {
+		content_widget->setLayout(carouselLayout);
+		content_widget->adjustSize(); // 调整内容大小以正确计算宽度
+		scrollArea->setWidget(content_widget);
+		// ---------------------------------------------
+		content_layout->addLayout(title_layout); //上
+		content_layout->addWidget(scrollArea);   //下
 
-	this->setLayout(content_layout);
+		this->setLayout(content_layout);
 
-	content_widget->update();
-	scrollArea->update();
+		content_widget->update();
+		scrollArea->update();
 
-	// 初始化时滚动到中间组
-	QTimer::singleShot(10, this, [=]() {
-		auto hScrollBar = scrollArea->horizontalScrollBar();
-		int totalWidth = content_widget->width();
-		hScrollBar->setValue(totalWidth / 3); // 定位到中间组起始位置
-		});
+		// 初始化时滚动到中间组
+		QTimer::singleShot(10, this, [=]() {
+			auto hScrollBar = scrollArea->horizontalScrollBar();
+			int totalWidth = content_widget->width();
+			hScrollBar->setValue(totalWidth / 3); // 定位到中间组起始位置
+			});
+
+		startAutoScroll();
+		});	
 }
 
 void SDisplayImagesScrollAreaWidget::mousePressEvent(QMouseEvent* event)

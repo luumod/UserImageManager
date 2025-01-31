@@ -16,11 +16,14 @@ SImage::~SImage()
 
 void SImage::loadAndCropImage(const QString& filePath, QLabel* pixmapLab, LoadInWhere loadTpye)
 {
-	if (loadTpye == LoadInWhere::Other) {
+	if (loadTpye != LoadInWhere::DontClear) {
 		pixmapLab->clear();
 	}
 	QFuture<QPixmap> future = QtConcurrent::run([filePath, pixmapLab]() {
 		QPixmap pixmap(filePath);
+		if (pixmap.isNull()) {
+			return QPixmap();
+		}
 		QRect cropRect = cropPixmap(pixmap, pixmapLab->rect());
 		if (cropRect == QRect(QPoint(0, 0), pixmap.size())) {
 			return pixmap;
@@ -34,7 +37,9 @@ void SImage::loadAndCropImage(const QString& filePath, QLabel* pixmapLab, LoadIn
 	QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(pixmapLab);
 	connect(watcher, &QFutureWatcher<QPixmap>::finished, pixmapLab, [pixmapLab, watcher]() {
 		QPixmap croppedPixmap = watcher->result();
-		pixmapLab->setPixmap(croppedPixmap.scaled(pixmapLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		if (!croppedPixmap.isNull()) {
+			pixmapLab->setPixmap(croppedPixmap.scaled(pixmapLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		}
 		watcher->deleteLater();
 		});
 
@@ -44,6 +49,9 @@ void SImage::loadAndCropImage(const QString& filePath, QLabel* pixmapLab, LoadIn
 const QPixmap SImage::loadAndCropImage(const QString& filePath, const QRect& previewRect)
 {
 	QPixmap pixmap(filePath);
+	if (pixmap.isNull()) {
+		return QPixmap();
+	}
 	QRect cropRect = cropPixmap(pixmap, previewRect);
 	if (cropRect == QRect(QPoint(0, 0), pixmap.size())) {
 		return pixmap.scaled(previewRect.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
