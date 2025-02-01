@@ -22,6 +22,7 @@ protected:
 
 signals:
     void openFileDialog();
+    void dragImageFile(const QString& filePath);
 public slots:
 
 private:

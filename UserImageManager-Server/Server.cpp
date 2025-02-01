@@ -768,7 +768,7 @@ void Server::route_userImage()
 		}
 		//把路径写入数据库
 		query.prepare(QString("INSERT IGNORE INTO user_image(owner_id,image_name,image_type,upload_time,description,image_format,image_share,image_download,image_ResolutionRatio) \
-			VALUES (%1,'%2','%3','%4','%5','%6',%7,%8,'%9','%10')")
+			VALUES (%1,'%2','%3','%4','%5','%6',%7,%8,'%9')")
 			.arg(owner_id)
 			.arg(QFileInfo(parse.filename()).baseName())
 			.arg(image_type)

@@ -185,10 +185,6 @@ void SUploadorDragImageWidget::dropEvent(QDropEvent* event)
 	const QList<QUrl> urls = event->mimeData()->urls();
 	if (!urls.isEmpty()) {
 		QString filePath = urls.first().toLocalFile(); //单张
-		qDebug() << "drop filePath:" << filePath;
-		/*if (isImageFile(filePath)) {
-			QPixmap pixmap(filePath);
-			imageLabel->setPixmap(pixmap.scaled(imageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-		}*/
+		emit dragImageFile(filePath);
 	}
 }

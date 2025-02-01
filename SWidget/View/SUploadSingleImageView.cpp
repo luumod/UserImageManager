@@ -189,7 +189,14 @@ void SUploadSingleImageView::init()
 				QMessageBox::critical(this, "错误", "发生未知错误");
 			}
 		});
-
+	connect(uploadBtn, &SUploadorDragImageWidget::dragImageFile, this, [=](const QString& filepath) {
+		if (!filepath.isEmpty()) {
+			if (initFile(filepath)) {
+				update(filepath);
+				SImage::loadAndCropImage(filepath, m_previewImage);
+			}
+		}
+		});
 	connect(okbtn, &QPushButton::clicked, this, [=]() {
 		postImage();
 		});
@@ -457,6 +464,22 @@ QWidget* SUploadSingleImageView::drawLine()
 	return line;
 }
 
+bool SUploadSingleImageView::initFile(const QString& filepath)
+{
+	// 关闭之前打开的文件
+	if (m_file.isOpen()) {
+		m_file.close();
+	}
+
+	// 设置新的文件名并打开文件
+	m_file.setFileName(filepath);
+	if (!m_file.open(QIODevice::ReadOnly)) {
+		QMessageBox::warning(this, "失败", QString("图片打开失败: %1").arg(m_file.errorString()));
+		return false;
+	}
+	return true;
+}
+
 void SUploadSingleImageView::resizeEvent(QResizeEvent* event)
 {
 	QWidget::resizeEvent(event);
@@ -490,22 +513,12 @@ QString SUploadSingleImageView::uploadImage() {
 	// 更新全局配置中的文件路径
 	sApp->globalConfig()->setValue("user/upload_image_path", QFileInfo(filename).canonicalPath());
 
-	// 关闭之前打开的文件
-	if (m_file.isOpen()) {
-		m_file.close();
-	}
-
-	// 设置新的文件名并打开文件
-	m_file.setFileName(filename);
-	if (!m_file.open(QIODevice::ReadOnly)) {
-		QMessageBox::warning(this, "失败", QString("图片打开失败: %1").arg(m_file.errorString()));
-		return QString();
-	}
-
 	//异步加载图片到预览图
-	SImage::loadAndCropImage(filename, m_previewImage);
-
-	return filename; // 成功加载图片，返回图片绝对路径
+	if (initFile(filename)) {
+		SImage::loadAndCropImage(filename, m_previewImage);
+		return filename; // 成功加载图片，返回图片绝对路径
+	}
+	return QString(); // 失败，返回空字符串
 }
 
 

@@ -27,6 +27,8 @@ public:
 	QHBoxLayout* createItem(QComboBox*& ComboBox, const QString& label_name, const QStringList& items, const QString& tip_text);
 	QHBoxLayout* createItem(QTextEdit*& textEdit, const QString& label_name, const QString& desc, const QString& tip_text);
 	QWidget* drawLine();
+
+	bool initFile(const QString& filepath);
 protected:
 	void resizeEvent(QResizeEvent* event) override;
 	bool eventFilter(QObject* watched, QEvent* event)override;
