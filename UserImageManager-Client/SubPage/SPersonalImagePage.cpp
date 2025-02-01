@@ -1,5 +1,4 @@
 ﻿#include "SPersonalImagePage.h"
-#include "SPersonalImagePage.h"
 #include "SHttpClient.h"
 #include "SApp.h"
 #include "SRoundedImageWidget.h"

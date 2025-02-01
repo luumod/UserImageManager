@@ -66,7 +66,7 @@ void SRoundedImageWidget::setImagePath(const QString& filePath)
 	m_filePath = filePath;
 
 	//异步加载图片
-	SImage::loadAndCropImage(filePath, m_pixmapLab);
+	SImage::loadAndCropImage(filePath, m_pixmapLab,SImage::LoadInWhere::DontClear);
 }
 
 void SRoundedImageWidget::mouseMoveEvent(QMouseEvent* event)

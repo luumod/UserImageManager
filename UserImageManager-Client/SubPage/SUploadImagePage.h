@@ -7,6 +7,7 @@
 #include "SImageInfo.h"
 
 class SUploadSingleImageView;
+class SUploadMultiImageView;
 class SUploadImagePage : public QWidget
 {
 	Q_OBJECT
@@ -20,9 +21,11 @@ protected:
 	void resizeEvent(QResizeEvent* event) override;
 public slots:
 	void onUploadSingleImageClicked();
+	void onUploadSomeImageClicked();
 private:
 
 	SUploadSingleImageView* m_uploadSingle{};
+	SUploadMultiImageView* m_uploadMulti{};
 };
 
 #endif // HOMEPAGE_H

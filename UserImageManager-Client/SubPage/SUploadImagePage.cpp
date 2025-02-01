@@ -1,6 +1,7 @@
 ﻿#include "SUploadImagePage.h"
 #include "SBigIconButton.h"
 #include "SUploadSingleImageView.h"
+#include "SUploadMultiImageView.h"
 #include <QBoxLayout>
 
 SUploadImagePage::SUploadImagePage(QWidget *parent) 
@@ -43,6 +44,7 @@ void SUploadImagePage::init()
 
 
 	connect(uploadBtn, &SBigIconButton::clicked, this, &SUploadImagePage::onUploadSingleImageClicked);
+	connect(uploadBtn_some, &SBigIconButton::clicked, this, &SUploadImagePage::onUploadSomeImageClicked);
 }
 
 void SUploadImagePage::resizeEvent(QResizeEvent* event)
@@ -60,7 +62,15 @@ void SUploadImagePage::onUploadSingleImageClicked() {
 
 	}
 	m_uploadSingle->resize(this->size());
-	this->lower();
-	m_uploadSingle->raise();
 	m_uploadSingle->show();
+}
+
+
+void SUploadImagePage::onUploadSomeImageClicked() {
+	if (!m_uploadMulti) {
+		m_uploadMulti = new SUploadMultiImageView(this);
+
+	}
+	m_uploadMulti->resize(this->size());
+	m_uploadMulti->show();
 }
