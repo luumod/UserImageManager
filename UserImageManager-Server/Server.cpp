@@ -2023,8 +2023,9 @@ void Server::route_userImage()
 		return SResult::success();
 		});
 
-	//获取图片的评论数量：GET
-	m_server.route("/api/user/get_comment_count", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
+	//获取某个用户主的全部活动 GET
+	m_server.route("/api/user/get_activities", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
+
 		//校验参数
 		std::optional<QByteArray> token = CheckToken(request);
 		if (token.has_value()) { //token校验失败
@@ -2033,32 +2034,72 @@ void Server::route_userImage()
 		}
 
 		auto uquery = request.query();
-		if (uquery.queryItemValue("image_id").isEmpty()) {
+		if (uquery.queryItemValue("user_id").isEmpty()) {
 			responder.write(SResultCode::ParamMissing.toJson(), "application/json");
 			return;
 		}
-		auto image_id = uquery.queryItemValue("image_id").toInt();
+		auto owner_user_id = uquery.queryItemValue("user_id").toInt();
+		auto page = uquery.queryItemValue("page").toInt();
+		auto pageSize = uquery.queryItemValue("pageSize").toInt();
+
+		if (pageSize == 0) {
+			pageSize = 7;
+		}
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		//按照优先级排序（评论置顶功能）
-		query.prepare(QString("SELECT * FROM image_comment WHERE image_id=%1 AND isDeleted=false ORDER BY priority DESC;")
-			.arg(image_id));
+		//确保筛选后能得到正确的页数信息
+		query.prepare(QString("SELECT COUNT(*) as total FROM user_activities where owner_user_id=%1").arg(owner_user_id));
 		if (!query.exec()) {
 			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 			return;
 		}
+#if _DEBUG	
+		qDebug() << query.lastQuery();
+#endif
+
+		query.next();
+		auto total_records = query.value("total").toInt(); //活动总数
+		auto last_page = total_records / pageSize + (total_records % pageSize ? 1 : 0);
+		if (page < 1 || page > last_page) {
+			page = 1;
+		}
+
+		//查询活动
+		QString sql = QString("SELECT * FROM user_activities WHERE owner_user_id=%1 ORDER BY created_time desc ").arg(owner_user_id);
+		sql += QString(" LIMIT %1,%2").arg((page - 1) * pageSize).arg(pageSize);
+		query.prepare(sql);
+		if (!query.exec()) {
+			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+			return;
+		}
+#if _DEBUG	
+		qDebug() << "全部活动: ";
+		qDebug() << query.lastQuery();
+#endif
+
 		QJsonArray jarray;
 		SSqlConnectionWrap wrap2;
-		QSqlQuery query_user_info(wrap2.openConnection());
-		int i = 0;
+		QSqlQuery query_image_info(wrap2.openConnection());
+		SSqlConnectionWrap wrap3;
+		QSqlQuery query_user_info(wrap3.openConnection());
 		while (query.next()) {
-			auto comment_id = query.value("comment_id").toInt(); //获取每个评论的id
-			auto user_id = query.value("user_id").toInt(); //获取每个评论对应的用户id
-			auto comment_content = query.value("comment_content").toString(); //获取每个评论对应的内容
-			auto priority = query.value("priority").toInt(); //获取每个评论的优先级
-			auto comment_time = query.value("comment_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss"); //获取每个评论的时间
-			query_user_info.prepare(QString("SELECT user_name,avatar_path FROM user_info WHERE id=%1").arg(user_id)); //获取评论者的重要信息
+			auto actor_user_id = query.value("actor_user_id").toInt(); //每个活动的发送者id
+			auto image_id = query.value("image_id").toInt(); //每个活动的目标图片id
+
+			//获取图片名字
+			query_image_info.prepare(QString("SELECT image_name FROM user_image WHERE image_id=%1").arg(image_id)); 
+			if (!query_image_info.exec()) {
+				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
+				return;
+			}
+#if _DEBUG	
+			qDebug() << query_image_info.lastQuery();
+#endif
+			query_image_info.next();
+
+			//获取活动发送者的名字和头像
+			query_user_info.prepare(QString("SELECT user_name,avatar_path FROM user_info WHERE id=%1").arg(actor_user_id));
 			if (!query_user_info.exec()) {
 				responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 				return;
@@ -2068,13 +2109,13 @@ void Server::route_userImage()
 #endif
 			query_user_info.next();
 
+
 			QJsonObject jobj;
-			jobj.insert("comment_id", comment_id);
-			jobj.insert("priority", priority);
-			jobj.insert("comment_content", comment_content);
-			jobj.insert("comment_time", comment_time);
 			jobj.insert("user_name", query_user_info.value("user_name").toString());
 			jobj.insert("avatar_path", query_user_info.value("avatar_path").toString());
+			jobj.insert("image_name", query_image_info.value("image_name").toString());
+			jobj.insert("activity_type", query.value("activity_type").toString());
+			jobj.insert("created_time", query.value("created_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss"));
 			jarray.append(jobj);
 		}
 
@@ -2084,9 +2125,13 @@ void Server::route_userImage()
 		}
 
 		QJsonObject jobj;
-		jobj.insert("users", jarray);
+		jobj.insert("images", jarray);
+		jobj.insert("cur_page", page);
+		jobj.insert("page_size", pageSize);
+		jobj.insert("last_page", last_page);
+		jobj.insert("total_records", total_records);
 		responder.write(SResult::success(jobj), "application/json");
+		return;
 		});
-
 }
 

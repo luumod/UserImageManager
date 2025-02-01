@@ -98,3 +98,4 @@ void SHomePage::init()
 	this->update();
 	layout()->activate();
 }
+
