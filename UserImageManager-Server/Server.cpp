@@ -753,10 +753,6 @@ void Server::route_userImage()
 		if (image_ResolutionRatio.isEmpty()) {
 			image_ResolutionRatio = "未知";
 		}
-		auto image_quality = uquery.queryItemValue("image_quality");
-		if (image_quality.isEmpty()) {
-			image_quality = "高清";
-		}
 		auto data = request.body();
 		if (data.isEmpty()) {
 			return SResult::error(SResultCode::ParamMissing);
@@ -771,7 +767,7 @@ void Server::route_userImage()
 			dir.mkpath(path);
 		}
 		//把路径写入数据库
-		query.prepare(QString("INSERT IGNORE INTO user_image(owner_id,image_name,image_type,upload_time,description,image_format,image_share,image_download,image_ResolutionRatio,image_quality) \
+		query.prepare(QString("INSERT IGNORE INTO user_image(owner_id,image_name,image_type,upload_time,description,image_format,image_share,image_download,image_ResolutionRatio) \
 			VALUES (%1,'%2','%3','%4','%5','%6',%7,%8,'%9','%10')")
 			.arg(owner_id)
 			.arg(QFileInfo(parse.filename()).baseName())
@@ -782,7 +778,6 @@ void Server::route_userImage()
 			.arg(image_share)
 			.arg(image_download)
 			.arg(image_ResolutionRatio)
-			.arg(image_quality)
 		);
 		query.exec();
 #if _DEBUG
@@ -834,7 +829,6 @@ void Server::route_userImage()
 		auto image_format = jdom["image_format"].toString();
 		auto image_size = jdom["image_size"].toInt();
 		auto image_ResolutionRatio = jdom["image_ResolutionRatio"].toString();
-		auto image_quality = jdom["image_quality"].toString();
 		auto image_share = jdom["image_share"].toInt();
 		auto image_download = jdom["image_download"].toInt();
 		auto description = jdom["description"].toString();
@@ -864,7 +858,7 @@ void Server::route_userImage()
 		//}
 		//file.write(parse.data());
 		//把路径写入数据库
-		query.prepare(QString("UPDATE user_image SET image_name='%1',image_type='%2',image_format='%3',image_size=%4,image_ResolutionRatio='%5',upload_time='%6',description='%7',image_share=%8,image_download=%9,image_quality='%10' WHERE image_id=%11")
+		query.prepare(QString("UPDATE user_image SET image_name='%1',image_type='%2',image_format='%3',image_size=%4,image_ResolutionRatio='%5',upload_time='%6',description='%7',image_share=%8,image_download=%9 WHERE image_id=%10")
 			.arg(image_name)
 			.arg(image_type)
 			.arg(image_format)
@@ -874,7 +868,6 @@ void Server::route_userImage()
 			.arg(description)
 			.arg(image_share)
 			.arg(image_download)
-			.arg(image_quality)
 			.arg(image_id)
 		);
 		query.exec();
@@ -1014,7 +1007,6 @@ void Server::route_userImage()
 			jobj.insert("image_type", query.value("image_type").toString());
 			jobj.insert("image_download", query.value("image_download").toInt());
 			jobj.insert("image_ResolutionRatio", query.value("image_ResolutionRatio").toString());
-			jobj.insert("image_quality", query.value("image_quality").toString());
 			jobj.insert("upload_time", query.value("upload_time").toString());
 			jobj.insert("description", query.value("description").toString());
 			jobj.insert("like_count", query_everyImage_statistics.value("like_count").toInt());
@@ -1111,7 +1103,6 @@ void Server::route_userImage()
 			jobj2.insert("image_type", query2.value("image_type").toString());
 			jobj2.insert("image_download", query2.value("image_download").toInt());
 			jobj2.insert("image_ResolutionRatio", query2.value("image_ResolutionRatio").toString());
-			jobj2.insert("image_quality", query2.value("image_quality").toString());
 			jobj2.insert("upload_time", query2.value("upload_time").toString());
 			jobj2.insert("description", query2.value("description").toString());
 			jobj2.insert("like_count", query_everyImage_statistics.value("like_count").toInt());
@@ -1206,7 +1197,6 @@ void Server::route_userImage()
 			jobj2.insert("image_type", query2.value("image_type").toString());
 			jobj2.insert("image_download", query2.value("image_download").toInt());
 			jobj2.insert("image_ResolutionRatio", query2.value("image_ResolutionRatio").toString());
-			jobj2.insert("image_quality", query2.value("image_quality").toString());
 			jobj2.insert("upload_time", query2.value("upload_time").toString());
 			jobj2.insert("description", query2.value("description").toString());
 			jobj2.insert("like_count", query_everyImage_statistics.value("like_count").toInt());
@@ -1358,7 +1348,6 @@ void Server::route_userImage()
 			jobj.insert("image_type", query.value("image_type").toString());
 			jobj.insert("image_download", query.value("image_download").toInt());
 			jobj.insert("image_ResolutionRatio", query.value("image_ResolutionRatio").toString());
-			jobj.insert("image_quality", query.value("image_quality").toString());
 			jobj.insert("upload_time", query.value("upload_time").toString());
 			jobj.insert("description", query.value("description").toString());
 			jobj.insert("like_count", query_everyImage_statistics.value("like_count").toInt());
@@ -1471,7 +1460,6 @@ void Server::route_userImage()
 		jobj.insert("image_type", query.value("image_type").toString());
 		jobj.insert("image_download", query.value("image_download").toInt());
 		jobj.insert("image_ResolutionRatio", query.value("image_ResolutionRatio").toString());
-		jobj.insert("image_quality", query.value("image_quality").toString());
 		jobj.insert("upload_time", query.value("upload_time").toString());
 		jobj.insert("description", query.value("description").toString());
 		jobj.insert("like_count", query_everyImage_statistics.value("like_count").toInt());

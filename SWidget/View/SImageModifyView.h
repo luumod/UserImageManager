@@ -41,7 +41,6 @@ private:
 	QLineEdit* m_formatEdit{};
 	QLineEdit* m_sizeEdit{};
 	QLineEdit* m_resolutionEdit{};
-	QLineEdit* m_qualityEdit{};
 	QLineEdit* m_uploadTimeEdit{};
 	QComboBox* m_shareCombo{};
 	QComboBox* m_downloadCombo{};

@@ -145,10 +145,6 @@ void SUploadSingleImageView::init()
 		"1920x1080 / 2560x1440 /...",
 		"无法输入，加载图片后，系统会自动识别图片分辨率，如需修改请上传后前往图片加工", false));
 	contentLayout->addSpacing(50);
-	contentLayout->addLayout(createItem(m_qualityEdit, "图片质量",
-		"高清",
-		"无法输入，默认高清，如需修改请上传后前往图片加工", false));
-	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_uploadTimeEdit, "图片上传时间",
 		"2021-08-01 12:00:00",
 		"默认为当前时间", false));
@@ -226,7 +222,6 @@ void SUploadSingleImageView::passNecessaryInfo()
 	image.set_image_type(m_typeEdit->text());
 	image.set_image_download(m_downloadCombo->currentIndex());
 	image.set_image_ResolutionRatio(m_resolutionEdit->text());
-	image.set_image_quality(m_qualityEdit->text());
 	image.set_image_upload_time(m_uploadTimeEdit->text());
 	image.set_image_desc(m_imageDescEdit->toPlainText().isEmpty() ? m_imageDescEdit->placeholderText() : m_imageDescEdit->toPlainText());
 }
@@ -517,7 +512,7 @@ QString SUploadSingleImageView::uploadImage() {
 void SUploadSingleImageView::postImage() {
 	passNecessaryInfo();
 
-	///api/user/upload_image?user_account=1173012900&image_type=测试&description=《湘行散记》以作者回乡途中的所见所闻为线索，生动地描绘了湘西地区的自然风光、风土人情，充满了浓郁的乡土气息和诗意情怀。&image_share=0&image_download=1&image_ResolutionRatio=1920 x 1080&image_quality=高清
+	///api/user/upload_image?user_account=1173012900&image_type=测试&description=《湘行散记》以作者回乡途中的所见所闻为线索，生动地描绘了湘西地区的自然风光、风土人情，充满了浓郁的乡土气息和诗意情怀。&image_share=0&image_download=1&image_ResolutionRatio=1920 x 1080&
 	auto url = URL("/api/user/upload_image?user_account=" +
 		sApp->globalConfig()->value("user/user_account").toString()
 		+ "&image_type="
@@ -529,9 +524,7 @@ void SUploadSingleImageView::postImage() {
 		+ "&image_download="
 		+ QString::number(image.m_download)
 		+ "&image_ResolutionRatio="
-		+ image.m_ResolutionRatio
-		+ "&image_quality="
-		+ image.m_quality);
+		+ image.m_ResolutionRatio);
 
 	QNetworkAccessManager* mangaer = new QNetworkAccessManager(this);
 	QNetworkRequest request(url);

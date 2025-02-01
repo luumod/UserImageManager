@@ -190,13 +190,6 @@ void SImageModifyView::init()
 	formLayout_11->addWidget(resolutionLab);
 	formLayout_11->addWidget(m_resolutionEdit);
 
-	QHBoxLayout* formLayout_20 = new QHBoxLayout;
-	auto qualityLab = new QLabel("图片质量：");
-	m_qualityEdit = new QLineEdit;
-	m_qualityEdit->setEnabled(false);
-	formLayout_20->addWidget(qualityLab);
-	formLayout_20->addWidget(m_qualityEdit);
-
 	indirectModifyLayout->addSpacing(5);
 	indirectModifyLayout->addLayout(lab2Layout, 1);
 	indirectModifyLayout->addSpacing(20);
@@ -206,8 +199,6 @@ void SImageModifyView::init()
 	indirectModifyLayout->addSpacing(20);
 	indirectModifyLayout->addLayout(formLayout_11, 1);
 	indirectModifyLayout->addSpacing(20);
-	indirectModifyLayout->addLayout(formLayout_20, 1);
-	indirectModifyLayout->addSpacing(5);
 	indirectModifyWidget->setLayout(indirectModifyLayout);
 	//----------------------------------------------
 
@@ -244,7 +235,6 @@ void SImageModifyView::setData(const QJsonObject& jImage)
 	m_resolutionEdit->setText(image.m_ResolutionRatio);
 	m_uploadTimeEdit->setText(image.m_upload_time);
 	m_typeEdit->setText(image.m_type);
-	m_qualityEdit->setText(image.m_quality);
 	m_shareCombo->setCurrentIndex(image.m_share);
 	m_downloadCombo->setCurrentIndex(image.m_download);
 	m_imageDescEdit->setText(image.m_desc);
@@ -265,7 +255,6 @@ void SImageModifyView::updateImageInfo()
 	jImage["image_format"] = m_formatEdit->text();
 	jImage["image_size"] = image.m_size;
 	jImage["image_ResolutionRatio"] = m_resolutionEdit->text();
-	jImage["image_quality"] = m_qualityEdit->text();
 	jImage["image_share"] = m_shareCombo->currentIndex();
 	jImage["image_download"] = m_downloadCombo->currentIndex();
 	jImage["description"] = m_imageDescEdit->toPlainText();
