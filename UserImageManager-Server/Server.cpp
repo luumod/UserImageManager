@@ -1063,7 +1063,7 @@ void Server::route_userImage()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT image_id, (like_count * 1 + star_count * 3 + download_count * 5 + comment_count * 4) AS heat FROM image_statistics WHERE user_id=%1 AND isDeleted=0 ORDER BY heat DESC LIMIT %2")
+		query.prepare(QString("SELECT image_id, (like_count * 1 + star_count * 3 + download_count * 5 + comment_count * 4) AS heat FROM image_statistics WHERE owner_user_id=%1 AND isDeleted=0 ORDER BY heat DESC LIMIT %2")
 			.arg(user_id).arg(get_size));
 		if (!query.exec()) {
 			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
@@ -1433,7 +1433,7 @@ void Server::route_userImage()
 		QSqlQuery query(wrap.openConnection());
 		query.prepare(QString("SELECT * FROM user_image WHERE image_id=%1").arg(image_id));
 #if _DEBUG
-		qDebug() << "获取某一张图片的信息";
+		qDebug() << "获取图片基本信息";
 		qDebug() << query.lastQuery();
 #endif
 		if (!query.exec()) {
@@ -1441,19 +1441,20 @@ void Server::route_userImage()
 			return;
 		}
 		if (!query.next()) {
-			responder.write(SResultCode::ImageAlreadyDeleted.toJson(), "application/json");
+			responder.write(SResultCode::ImageNotFound.toJson(), "application/json");
 			return;
 		}
 		QJsonArray jarray;
 		SSqlConnectionWrap wrap2;
 		QSqlQuery query_everyImage_statistics(wrap2.openConnection());
 		int i = 0;
-		query_everyImage_statistics.prepare(QString("SELECT like_count,star_count,download_count,comment_count FROM image_statistics WHERE image_id=%1").arg(image_id)); //统计每一张图片的统计数据数
+		query_everyImage_statistics.prepare(QString("SELECT like_count,star_count,download_count,comment_count FROM image_statistics WHERE image_id=%1").arg(image_id)); 
 		if (!query_everyImage_statistics.exec()) {
 			responder.write(SResultCode::ServerSqlQueryError.toJson(), "application/json");
 			return;
 		}
 #if _DEBUG	
+		qDebug()<<"获取图片统计数据";
 		qDebug() << query_everyImage_statistics.lastQuery();
 #endif
 		query_everyImage_statistics.next();
@@ -1780,7 +1781,7 @@ void Server::route_userImage()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		//首先查询点赞是否已经存在
+		//首先查询收藏是否已经存在
 		query.prepare(QString("SELECT * FROM image_star WHERE user_id=%1 AND image_id=%2").arg(user_id.toInt()).arg(image_id.toInt()));
 		if (!query.exec()) {
 			return SResult::error(SResultCode::ServerSqlQueryError);
@@ -1943,9 +1944,15 @@ void Server::route_userImage()
 #if _DEBUG
 		qDebug() << query.lastQuery();
 #endif
-		query.next();
-		auto image_id = query.value("image_id").toInt(); 
-		auto owner_id = query.value("owner_user_id").toInt();
+		int image_id = 0, owner_id = 0;
+		if (query.next()) {
+			image_id = query.value("image_id").toInt();
+			owner_id = query.value("owner_user_id").toInt();
+		}
+		else {
+			return SResult::error(SResultCode::CommentNotExist);
+		}
+		
 
 		if (delete_comment_user_id != owner_id) {
 			//不是图片的所有者，不能删除评论
@@ -1992,9 +1999,15 @@ void Server::route_userImage()
 #if _DEBUG
 		qDebug() << query.lastQuery();
 #endif
-		query.next();
-		auto image_id = query.value("image_id").toInt();
-		auto owner_id = query.value("owner_user_id").toInt();
+		int image_id{}, owner_id{};
+		if (query.next()) {
+			image_id = query.value("image_id").toInt();
+			owner_id = query.value("owner_user_id").toInt();
+		}
+		else {
+			return SResult::error(SResultCode::CommentNotExist);
+		}
+		
 		if (top_comment_user_id != owner_id) {
 			//不是图片的所有者，不能置顶评论
 			return SResult::error(SResultCode::UserAuthForbidden);
