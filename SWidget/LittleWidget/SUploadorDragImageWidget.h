@@ -21,7 +21,7 @@ protected:
     void dropEvent(QDropEvent *event)override;
 
 signals:
-
+    void openFileDialog();
 public slots:
 
 private:

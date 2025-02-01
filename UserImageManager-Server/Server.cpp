@@ -755,7 +755,7 @@ void Server::route_userImage()
 		}
 		auto image_quality = uquery.queryItemValue("image_quality");
 		if (image_quality.isEmpty()) {
-			image_quality = "未知";
+			image_quality = "高清";
 		}
 		auto data = request.body();
 		if (data.isEmpty()) {

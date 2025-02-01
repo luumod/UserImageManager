@@ -157,7 +157,7 @@ void SUploadorDragImageWidget::mouseReleaseEvent(QMouseEvent* event)
 
 	//打开文件选择框
 	if (event->button() == Qt::LeftButton) {
-		QString fileName = QFileDialog::getOpenFileName(this, "选择一个文件上传", "", "Image Files (*.jpg *.png *.jpeg *.gif)");
+		emit openFileDialog();
 	}
 	QWidget::mouseReleaseEvent(event);
 }

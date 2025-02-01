@@ -12,6 +12,7 @@ class QTextEdit;
 class QLineEdit;
 class QComboBox;
 class QLabel;
+class QDateTimeEdit;
 class SUploadSingleImageView : public QWidget
 {
 public:
@@ -22,14 +23,21 @@ public:
 	void update(const QString& filepath);
 	void passNecessaryInfo();
 	QHBoxLayout* createItem(QLineEdit*& lineEdit, const QString& label_name, const QString& edit_placholder, const QString& tip_text,bool enable);
-	QHBoxLayout* createItem(QComboBox*& lineEdit, const QString& label_name, const QStringList& items, const QString& tip_text);
+	QHBoxLayout* createItem(QDateTimeEdit*& dateTimeEdit, const QString& label_name, const QString& edit_placholder, const QString& tip_text, bool enable);
+	QHBoxLayout* createItem(QComboBox*& ComboBox, const QString& label_name, const QStringList& items, const QString& tip_text);
+	QHBoxLayout* createItem(QTextEdit*& textEdit, const QString& label_name, const QString& desc, const QString& tip_text);
 	QWidget* drawLine();
 protected:
 	void resizeEvent(QResizeEvent* event) override;
+	bool eventFilter(QObject* watched, QEvent* event)override;
 public slots:
 	QString uploadImage();
 	void postImage();
 private:
+	QColor defaultBorderColor = QColor(209, 217, 224);
+	QColor focusBorderColor = QColor(9, 105, 218);
+	QColor backgroundColor = QColor(246, 248, 250);
+
 	QFile m_file;
 	QLabel* m_previewImage{};
 
@@ -45,7 +53,7 @@ private:
 	QLineEdit* m_sizeEdit{};
 	QLineEdit* m_resolutionEdit{};
 	QLineEdit* m_qualityEdit{};
-	QLineEdit* m_uploadTimeEdit{};
+	QDateTimeEdit* m_uploadTimeEdit{};
 	QComboBox* m_shareCombo{};
 	QComboBox* m_downloadCombo{};
 

@@ -1,6 +1,4 @@
 ﻿#include "SUploadSingleImageView.h"
-#include "SUploadSingleImageView.h"
-#include "SUploadSingleImageView.h"
 #include "SUploadorDragImageWidget.h"
 #include "SBigIconButton.h"
 #include "SRoundedImageWidget.h"
@@ -20,7 +18,9 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QComboBox>
+#include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
+#include <QDateTimeEdit>
 
 SUploadSingleImageView::SUploadSingleImageView(QWidget* parent)
 	:QWidget(parent)
@@ -113,7 +113,7 @@ void SUploadSingleImageView::init()
 	QHBoxLayout* descLayout = new QHBoxLayout;
 	auto descLab = new QLabel("图片描述");
 	m_imageDescEdit = new QTextEdit;
-	m_imageDescEdit->setPlaceholderText("主人很懒，还没有描述这张图片~");
+	m_imageDescEdit->setPlaceholderText("");
 	descLayout->addWidget(descLab);
 	descLayout->addWidget(m_imageDescEdit);
 	//--------------------------------------------
@@ -130,32 +130,40 @@ void SUploadSingleImageView::init()
 	contentLayout->addLayout(middleLayout);
 	contentLayout->addWidget(drawLine());
 	contentLayout->addLayout(createItem(m_typeEdit, "图片类型",
-		"动漫/游戏/生活/其他",
-		"请选择图片类型，以便更好的分类图片", true));
+		"默认",
+		"请输入该图片所属的类型，以便更好的分类图片，如：动漫/游戏/生活/其他，不填则默认", true));
 	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_formatEdit, "图片格式",
 		"png/jpg/gif/...",
-		"加载图片后，系统会自动识别图片格式", false));
+		"无法输入，加载图片后，系统会自动识别图片格式，如需修改请上传后前往图片加工", false));
 	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_sizeEdit, "图片大小",
 		"100KB/200KB/...",
-		"加载图片后，系统会自动识别图片大小", false));
+		"无法输入，加载图片后，系统会自动识别图片大小，如需修改请上传后前往图片加工", false));
 	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_resolutionEdit, "图片分辨率",
 		"1920x1080 / 2560x1440 /...",
-		"加载图片后，系统会自动识别图片分辨率", false));
+		"无法输入，加载图片后，系统会自动识别图片分辨率，如需修改请上传后前往图片加工", false));
 	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_qualityEdit, "图片质量",
-		"高清/中等/低清",
-		"请选择图片质量，以便更好的压缩图片", false));
+		"高清",
+		"无法输入，默认高清，如需修改请上传后前往图片加工", false));
 	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_uploadTimeEdit, "图片上传时间",
 		"2021-08-01 12:00:00",
-		"图片上传到服务器的时间", false));
-	contentLayout->addLayout(createItem(m_shareCombo, "图片共享方式：", { "私有","公开","授权" }, "请选择图片共享方式，指定其他用户是否可以查看此图片"));
-	contentLayout->addLayout(createItem(m_downloadCombo, "图片下载方式：", { "私有","公开","授权" }, "请选择图片下载方式，指定其他用户是否可以下载此图片"));
+		"默认为当前时间", false));
 	contentLayout->addSpacing(50);
-	contentLayout->addLayout(descLayout);
+	contentLayout->addLayout(createItem(m_shareCombo, "图片共享方式：", 
+		{ "私有","公开","授权" },
+		"请选择图片共享方式，规定其他用户是否可以查看此图片"));
+	contentLayout->addSpacing(50);
+	contentLayout->addLayout(createItem(m_downloadCombo, "图片下载方式：",
+		{ "私有","公开","授权" },
+		"请选择图片下载方式，规定其他用户是否可以下载此图片"));
+	contentLayout->addSpacing(50);
+	contentLayout->addLayout(createItem(m_imageDescEdit, "图片描述信息：",
+		"主人很懒，还没有描述这张图片~",
+		"请输入图片的描述信息，让您或其他用户更容易理解图片内容"));
 	contentLayout->addLayout(bottomLayout);
 
 	contentWidget->setLayout(contentLayout);
@@ -168,25 +176,24 @@ void SUploadSingleImageView::init()
 	main_layout->update();
 	layout()->activate();
 
+	connect(uploadBtn, &SUploadorDragImageWidget::openFileDialog, this, [=]() {
+			QString filepath = uploadImage(); 
+			try {
+				if (!filepath.isEmpty()) {
+					update(filepath);
+				}
+				else {
+					QMessageBox::warning(this, "失败", "请重新选择图片");
+				}
+			}
+			catch (const std::exception& e) {
+				QMessageBox::critical(this, "错误", QString("发生错误: %1").arg(e.what()));
+			}
+			catch (...) {
+				QMessageBox::critical(this, "错误", "发生未知错误");
+			}
+		});
 
-	//connect(uploadBtn, &SBigIconButton::clicked, this, [=]() {
-	//	QString filepath = uploadImage(); // 返回图片绝对路径
-	//	try {
-	//		if (!filepath.isEmpty()) {
-	//			update(filepath);
-	//		}
-	//		else {
-	//			QMessageBox::warning(this, "失败", "请重新选择图片");
-	//		}
-	//	}
-	//	catch (const std::exception& e) {
-	//		QMessageBox::critical(this, "错误", QString("发生错误: %1").arg(e.what()));
-	//	}
-	//	catch (...) {
-	//		QMessageBox::critical(this, "错误", "发生未知错误");
-	//	}
-
-	//	});
 	connect(okbtn, &QPushButton::clicked, this, [=]() {
 		postImage();
 		});
@@ -205,8 +212,8 @@ void SUploadSingleImageView::update(const QString& filepath)
 	m_sizeEdit->setText(QString::number(m_file.size() / 1024) + "KB");
 	m_formatEdit->setText(m_fileInfo.suffix());
 	m_resolutionEdit->setText(QString::number(QImage(filepath).width()) + " x " + QString::number(QImage(filepath).height()));
-	m_uploadTimeEdit->setText(QDateTime::currentDateTime().toString("yyyy年MM月dd日 HH:mm:ss"));
-	//其余信息由用户填写
+
+	//其余信息由用户填写或自动生成
 }
 
 void SUploadSingleImageView::passNecessaryInfo()
@@ -238,13 +245,66 @@ QHBoxLayout* SUploadSingleImageView::createItem(QLineEdit*& lineEdit, const QStr
 	lineEdit = new QLineEdit;
 	lineEdit->setPlaceholderText(edit_placholder);
 	lineEdit->setEnabled(enable);
+	lineEdit->installEventFilter(this);
 
 	auto tipLayout = new QHBoxLayout;
 	auto tipLab = new QLabel(tip_text);
+	tipLab->setStyleSheet("color:rgb(89,99,110); font-size:12px;");
 	tipLayout->addWidget(tipLab);
 
 	typeLayout->addLayout(labLayout);
 	typeLayout->addWidget(lineEdit);
+	typeLayout->addLayout(tipLayout);
+
+	image_type_layout->addSpacing(300);
+	image_type_layout->addLayout(typeLayout);
+	image_type_layout->addSpacing(300);
+
+	image_type_layout->update();
+	return image_type_layout;
+}
+
+QHBoxLayout* SUploadSingleImageView::createItem(QDateTimeEdit*& DateTimeEdit, const QString& label_name, const QString& edit_placholder, const QString& tip_text, bool enable)
+{
+	auto image_type_layout = new QHBoxLayout;
+
+	auto typeLayout = new QVBoxLayout;
+
+	auto labLayout = new QHBoxLayout;
+	auto typeLab = new QLabel(label_name);
+	labLayout->addWidget(typeLab);
+	labLayout->addStretch();
+
+	DateTimeEdit = new QDateTimeEdit;
+
+	// 设置日期时间格式（如：2025-02-01 12:30:00）
+	DateTimeEdit->setDisplayFormat("yyyy-MM-dd HH:mm:ss");
+
+	QFont font;
+	font.setPointSize(12); 
+	font.setFamily("Arial"); 
+	DateTimeEdit->setFont(font);
+
+	DateTimeEdit->setStyleSheet("QDateTimeEdit {"
+		"border-radius: 5px;" 
+		"border: 2px solid gray;"
+		"padding: 5px;"
+		"background-color: transparent;"
+		"}");
+
+	DateTimeEdit->setFixedHeight(40);
+	DateTimeEdit->setFixedWidth(400);
+
+	DateTimeEdit->setDateTime(QDateTime::currentDateTime());
+	DateTimeEdit->installEventFilter(this);
+
+	auto tipLayout = new QHBoxLayout;
+	auto tipLab = new QLabel(tip_text);
+	tipLab->setStyleSheet("color:rgb(89,99,110); font-size:12px;");
+	tipLayout->addWidget(tipLab);
+
+	typeLayout->addLayout(labLayout);
+	typeLayout->addWidget(DateTimeEdit);
 	typeLayout->addLayout(tipLayout);
 
 	image_type_layout->addSpacing(300);
@@ -272,6 +332,7 @@ QHBoxLayout* SUploadSingleImageView::createItem(QComboBox*& comboBox, const QStr
 		comboBox->addItem(item);
 	}
 	comboBox->setCurrentIndex(1);
+	comboBox->installEventFilter(this);
 
 	auto tipLayout = new QHBoxLayout;
 	auto tipLab = new QLabel(tip_text);
@@ -287,6 +348,105 @@ QHBoxLayout* SUploadSingleImageView::createItem(QComboBox*& comboBox, const QStr
 
 	image_type_layout->update();
 	return image_type_layout;
+}
+
+QHBoxLayout* SUploadSingleImageView::createItem(QTextEdit*& textEdit, const QString& label_name, const QString& desc, const QString& tip_text)
+{
+	auto image_type_layout = new QHBoxLayout;
+
+	auto typeLayout = new QVBoxLayout;
+
+	auto labLayout = new QHBoxLayout;
+	auto typeLab = new QLabel(label_name);
+	labLayout->addWidget(typeLab);
+	labLayout->addStretch();
+
+	textEdit = new QTextEdit;
+	textEdit->setPlaceholderText(desc);
+	textEdit->installEventFilter(this);
+	textEdit->setMinimumHeight(100);
+	textEdit->resize(textEdit->width(), textEdit->minimumHeight());
+#define MAX_INPUT_LIMIT 300
+	auto charCountLabel = new QLabel("0/" + QString::number(MAX_INPUT_LIMIT) + "字");
+	charCountLabel->setStyleSheet("font-size: 14px; font-family: 微软雅黑;");
+	connect(textEdit, &QTextEdit::textChanged, [=]() {
+		int currentLength = textEdit->toPlainText().length();
+		int maxLength = MAX_INPUT_LIMIT;
+		if (currentLength > maxLength)
+			currentLength = maxLength;
+		QString charCount = QString("%1/%2").arg(currentLength).arg(maxLength);
+		charCountLabel->setText(charCount);
+
+		if (currentLength >= MAX_INPUT_LIMIT) {
+			QString textString = textEdit->toPlainText().left(MAX_INPUT_LIMIT);
+			textEdit->blockSignals(true); // Temporarily block signals
+			textEdit->setText(textString);
+			textEdit->blockSignals(false); // Re-enable signals
+			QTextCursor textCursor = textEdit->textCursor();
+			textCursor.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+			textEdit->setTextCursor(textCursor);
+		}
+
+		// 获取文档的尺寸
+		QTextDocument* document = textEdit->document();
+		QSizeF size = document->size();
+
+		int newHeight = qMin(qMax(document->size().height(), textEdit->minimumHeight() * 1.0), 400.0); // 限制最大高度为400
+		textEdit->setFixedHeight(newHeight);
+		});
+
+	auto tipLayout = new QHBoxLayout;
+	auto tipLab = new QLabel(tip_text);
+	tipLab->setStyleSheet("color:rgb(89,99,110); font-size:12px;");
+	tipLayout->addWidget(tipLab);
+	tipLayout->addStretch();
+	tipLayout->addWidget(charCountLabel);
+
+	typeLayout->addLayout(labLayout);
+	typeLayout->addWidget(textEdit);
+	typeLayout->addLayout(tipLayout);
+
+	image_type_layout->addSpacing(300);
+	image_type_layout->addLayout(typeLayout);
+	image_type_layout->addSpacing(300);
+
+	image_type_layout->update();
+	return image_type_layout;
+}
+
+bool SUploadSingleImageView::eventFilter(QObject* watched, QEvent* event)
+{
+	if (watched == m_typeEdit) {
+		if (event->type() == QEvent::FocusIn) {
+			m_typeEdit->setStyleSheet(QString("border: 3px solid %1; background-color:%2;").arg(focusBorderColor.name()).arg(backgroundColor.name()));
+		}
+		else if (event->type() == QEvent::FocusOut) {
+			m_typeEdit->setStyleSheet(QString("border: 1px solid %1; background-color:%2;").arg(defaultBorderColor.name()).arg("transparent"));
+		}
+	}
+	else if (watched == m_uploadTimeEdit) {
+		if (event->type() == QEvent::FocusIn) {
+			m_uploadTimeEdit->setStyleSheet(QString("border: 3px solid #4CAF50; background-color: %1").arg(backgroundColor.name()));
+		}
+		else if (event->type() == QEvent::FocusOut) {
+			m_uploadTimeEdit->setStyleSheet(QString("border: 1px solid %1; background-color:%2;").arg(defaultBorderColor.name()).arg("transparent"));
+		}
+	}
+	else if (watched == m_shareCombo ) {
+		
+	}
+	else if (watched == m_downloadCombo) {
+		
+	}
+	else if (watched == m_imageDescEdit){
+		if (event->type() == QEvent::FocusIn) {
+			m_imageDescEdit->setStyleSheet(QString("border: 3px solid %1; background-color:%2;").arg(focusBorderColor.name()).arg(backgroundColor.name()));
+		}
+		else if (event->type() == QEvent::FocusOut) {
+			m_imageDescEdit->setStyleSheet(QString("border: 1px solid %1; background-color:%2;").arg(defaultBorderColor.name()).arg("transparent"));
+		}
+	}
+	return QWidget::eventFilter(watched, event);
 }
 
 QWidget* SUploadSingleImageView::drawLine()
