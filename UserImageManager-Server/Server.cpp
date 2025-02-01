@@ -1128,7 +1128,7 @@ void Server::route_userImage()
 		while (jarray.size() < get_size) {
 			//不够，则重复添加已经添加的所有图片
 			auto tmpArray = jarray;
-			for (auto i = 0; i < tmpArray.size(); i++) {
+			for (auto i = 0; i < tmpArray.size() && jarray.size() < get_size; i++) {
 				jarray.append(tmpArray[i]);
 			}
 		}
@@ -1223,7 +1223,7 @@ void Server::route_userImage()
 		while (jarray.size() < get_size) {
 			//不够，则重复添加已经添加的所有图片
 			auto tmpArray = jarray;
-			for (auto i = 0; i < tmpArray.size(); i++) {
+			for (auto i = 0; i < tmpArray.size() && jarray.size() < get_size; i++) {
 				jarray.append(tmpArray[i]);
 			}
 		}
@@ -1383,7 +1383,7 @@ void Server::route_userImage()
 		return;
 		});
 
-	//获取全部用户的图片总数
+	//获取全站的图片总数
 	m_server.route("/api/user/get_image_count", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request, QHttpServerResponder&& responder) {
 
 		//校验参数
