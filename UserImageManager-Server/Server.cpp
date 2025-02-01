@@ -1623,9 +1623,20 @@ void Server::route_userImage()
 			return SResult::success(SResultCode::ImageUnliked);
 		}
 
-		query.prepare(QString("INSERT IGNORE INTO image_like(user_id, image_id, like_time) VALUES (%1,%2,'%3')")
+		SSqlConnectionWrap wrap2;
+		QSqlQuery query2(wrap2.openConnection());
+		//查询归属者
+		query2.prepare(QString("SELECT owner_id FROM user_image WHERE image_id=%1").arg(image_id.toInt()));
+		if (!query2.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query2);
+		query2.next();
+		auto owner_id = query2.value("owner_id").toInt();
+		query.prepare(QString("INSERT IGNORE INTO image_like(user_id, image_id, owner_user_id, like_time) VALUES (%1,%2,%3,'%4')")
 			.arg(user_id.toInt())
 			.arg(image_id.toInt())
+			.arg(owner_id)
 			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")));
 
 		if (!query.exec()) {
@@ -1716,9 +1727,20 @@ void Server::route_userImage()
 			return SResult::success(SResultCode::ImageUnStared);
 		}
 
-		query.prepare(QString("INSERT IGNORE INTO image_star(user_id, image_id, star_time) VALUES (%1,%2,'%3')")
+		SSqlConnectionWrap wrap2;
+		QSqlQuery query2(wrap2.openConnection());
+		//查询归属者
+		query2.prepare(QString("SELECT owner_id FROM user_image WHERE image_id=%1").arg(image_id.toInt()));
+		if (!query2.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query2);
+		query2.next();
+		auto owner_id = query2.value("owner_id").toInt();
+		query.prepare(QString("INSERT IGNORE INTO image_star(user_id, image_id,owner_user_id, star_time) VALUES (%1,%2,%3,'%4')")
 			.arg(user_id.toInt())
 			.arg(image_id.toInt())
+			.arg(owner_id)
 			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")));
 
 		if (!query.exec()) {
@@ -1793,9 +1815,20 @@ void Server::route_userImage()
 
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("INSERT IGNORE INTO image_comment(image_id, user_id,comment_content, comment_time) VALUES (%1,%2,'%3','%4')")
+		SSqlConnectionWrap wrap2;
+		QSqlQuery query2(wrap2.openConnection());
+		//查询归属者
+		query2.prepare(QString("SELECT owner_id FROM user_image WHERE image_id=%1").arg(image_id.toInt()));
+		if (!query2.exec()) {
+			return SResult::error(SResultCode::ServerSqlQueryError);
+		}
+		CheckSqlQuery(query2);
+		query2.next();
+		auto owner_id = query2.value("owner_id").toInt();
+		query.prepare(QString("INSERT IGNORE INTO image_comment(image_id, user_id,owner_user_id,comment_content, comment_time) VALUES (%1,%2,%3,'%4','%5')")
 			.arg(image_id.toInt())
 			.arg(user_id.toInt())
+			.arg(owner_id)
 			.arg(comment_content)
 			.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss")));
 		if (!query.exec()) {
@@ -1902,7 +1935,7 @@ void Server::route_userImage()
 		//根据评论id来找到对应的图片id
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT image_id FROM image_comment WHERE comment_id=%1").arg(comment_id));
+		query.prepare(QString("SELECT image_id,owner_user_id FROM image_comment WHERE comment_id=%1").arg(comment_id));
 		if (!query.exec()) {
 			return SResult::error(SResultCode::ServerSqlQueryError);
 		}
@@ -1912,20 +1945,9 @@ void Server::route_userImage()
 #endif
 		query.next();
 		auto image_id = query.value("image_id").toInt(); 
+		auto owner_id = query.value("owner_user_id").toInt();
 
-		//根据图片id来获得图片的所有者
-		query.prepare(QString("SELECT owner_id FROM user_image WHERE isDeleted=false AND image_id=%1").arg(image_id));
-		if (!query.exec()) {
-			return SResult::error(SResultCode::ServerSqlQueryError);
-		}
-		CheckSqlQuery(query);
-#if _DEBUG
-		qDebug() << query.lastQuery();
-#endif
-		if (!query.next()) {
-			return SResult::success(SResultCode::SuccessButNoData);
-		}
-		if (delete_comment_user_id != query.value("owner_id").toInt()) {
+		if (delete_comment_user_id != owner_id) {
 			//不是图片的所有者，不能删除评论
 			return SResult::error(SResultCode::UserAuthForbidden);
 		}
@@ -1962,7 +1984,7 @@ void Server::route_userImage()
 		//根据评论id来找到对应的图片id
 		SSqlConnectionWrap wrap;
 		QSqlQuery query(wrap.openConnection());
-		query.prepare(QString("SELECT image_id FROM image_comment WHERE comment_id=%1").arg(comment_id));
+		query.prepare(QString("SELECT image_id,owner_user_id FROM image_comment WHERE comment_id=%1").arg(comment_id));
 		if (!query.exec()) {
 			return SResult::error(SResultCode::ServerSqlQueryError);
 		}
@@ -1972,20 +1994,8 @@ void Server::route_userImage()
 #endif
 		query.next();
 		auto image_id = query.value("image_id").toInt();
-
-		//根据图片id来获得图片的所有者
-		query.prepare(QString("SELECT owner_id FROM user_image WHERE isDeleted=false AND image_id=%1").arg(image_id));
-		if (!query.exec()) {
-			return SResult::error(SResultCode::ServerSqlQueryError);
-		}
-		CheckSqlQuery(query);
-#if _DEBUG
-		qDebug() << query.lastQuery();
-#endif
-		if (!query.next()) {
-			return SResult::success(SResultCode::SuccessButNoData);
-		}
-		if (top_comment_user_id != query.value("owner_id").toInt()) {
+		auto owner_id = query.value("owner_user_id").toInt();
+		if (top_comment_user_id != owner_id) {
 			//不是图片的所有者，不能置顶评论
 			return SResult::error(SResultCode::UserAuthForbidden);
 		}
