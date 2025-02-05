@@ -16,6 +16,7 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QPushButton>
+#include <QProgressBar>
 #include <QScrollArea>
 #include <QComboBox>
 #include <QGraphicsDropShadowEffect>
@@ -24,6 +25,8 @@
 #include <QListWidget>
 #include <QProgressBar>
 #include <QStackedWidget>
+#include <QThread>
+
 
 SUploadMultiImageView::SUploadMultiImageView(QWidget* parent)
 	:QWidget(parent)
@@ -86,7 +89,10 @@ void SUploadMultiImageView::init()
 	middleLayout->addWidget(m_previewImage);
 
 
-
+	//-------------------
+	m_progressBar = new QProgressBar;
+	m_progressBar->setRange(0, 100);
+	m_progressBarAll = new QProgressBar;
 
 	QHBoxLayout* bottomLayout = new QHBoxLayout;
 	auto okbtn = new QPushButton("上传");
@@ -94,9 +100,26 @@ void SUploadMultiImageView::init()
 	bottomLayout->addWidget(okbtn);
 	bottomLayout->addStretch();
 
+	m_progressWidget = new QWidget;
+	auto progresssLayout = new QHBoxLayout;
+	auto progresssLabel = new QLabel("上传进度：");
+	progresssLayout->addWidget(progresssLabel,1);
+	progresssLayout->addWidget(m_progressBar,8);
+
+	auto progresssAllLayout = new QHBoxLayout;
+	auto progresssAllLabel = new QLabel("总上传进度");
+	progresssAllLayout->addWidget(progresssAllLabel, 1);
+	progresssAllLayout->addWidget(m_progressBarAll, 8);
+	m_progressWidget->setLayout(new QVBoxLayout);
+	qobject_cast<QVBoxLayout*>(m_progressWidget->layout())->addLayout(progresssLayout);
+	qobject_cast<QVBoxLayout*>(m_progressWidget->layout())->addSpacing(20);
+	qobject_cast<QVBoxLayout*>(m_progressWidget->layout())->addLayout(progresssAllLayout);
+	m_progressWidget->hide();
+
 	contentLayout->addLayout(topTopLayout);
 	contentLayout->addLayout(middleLayout);
-	contentLayout->addSpacing(50);
+	contentLayout->addSpacing(20);
+	contentLayout->addWidget(m_progressWidget);
 	contentLayout->addLayout(createItem(m_labelEdit, "图片类型", "默认", "请输入该图片所属的类型，以便更好的分类图片，如：动漫/游戏/生活/其他，不填则默认"));
 	contentLayout->addSpacing(50);
 	contentLayout->addLayout(createItem(m_shareCombo, "图片共享方式：",
@@ -248,6 +271,11 @@ bool SUploadMultiImageView::uploadImages()
 
 void SUploadMultiImageView::postImages()
 {
+	m_progressWidget->show();
+	totalFiles = m_uploadFiles.size();
+	m_progressBar->setValue(0);
+	m_progressBarAll->setRange(0, m_uploadFiles.size());
+	m_progressBarAll->setValue(0);
 	foreach(auto filename, m_uploadFiles) {
 		if (m_file.isOpen()) {
 			m_file.close();
@@ -287,18 +315,35 @@ void SUploadMultiImageView::postImages()
 		mpart->append(part);
 
 		auto reply = mangaer->post(request, mpart);
-		connect(reply, &QNetworkReply::finished, [=]
-			{
-				if (reply->error() != QNetworkReply::NoError)
-				{
-					qDebug() << "replay error" << reply->errorString();
-					QMessageBox::warning(this, "失败", "上传失败");
-				}
-				else {
-					qDebug() << "上传成功";
-					QMessageBox::information(this, "成功", "上传成功");
-				}
+		connect(reply, &QNetworkReply::uploadProgress, this, [=](qint64 bytesSent, qint64 bytesTotal) {
+			//暂停10ms
+			QThread::msleep(50);
+			if (bytesTotal == 0){
+				m_progressBar->setValue(0);
+			}
+			else {
+				int progress = (bytesSent * 100) / bytesTotal;
+				m_progressBar->setValue(progress);
+			}
 			});
+		connect(reply, &QNetworkReply::finished, this, [=]() {
+			if (reply->error()) {
+				qDebug() << "Upload failed for file: " << reply->url().toString();
+			}
+			else {
+				qDebug() << "Upload succeeded for file: " << reply->url().toString();
+				uploadedFiles++;
 
+				// 更新上传进度
+				m_progressBarAll->setValue(uploadedFiles);
+
+				// 如果所有文件都上传完成，弹出提示框
+				if (uploadedFiles == totalFiles) {
+					QMessageBox::information(nullptr, "上传结果", "所有文件已成功上传！");
+					m_progressWidget->hide();
+				}
+			}
+			reply->deleteLater();
+			});
 	}
 }

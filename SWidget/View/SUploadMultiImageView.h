@@ -13,6 +13,7 @@ class QHBoxLayout;
 class QLineEdit;
 class QComboBox;
 class QTextEdit;
+class QProgressBar;
 class SUploadMultiImageView : public QWidget
 {
 public:
@@ -37,6 +38,11 @@ private:
 	QComboBox* m_shareCombo{}; 
 	QComboBox* m_downloadCombo{};
 	QTextEdit* m_imageDescEdit{};
+	QWidget* m_progressWidget{};
+	QProgressBar* m_progressBar{};
+	QProgressBar* m_progressBarAll{};
+
+	int uploadedFiles{}, totalFiles{};
 };
 
 
